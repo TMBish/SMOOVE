@@ -1,0 +1,103 @@
+@import url('//fonts.googleapis.com/css?family=Arvo');
+
+body {
+  background: url("back.png") repeat;
+}
+
+body, label, input, button, select { 
+  font-family: "Arial";
+}
+
+#header-logo {
+  height: 70px;
+  width: 75px;
+  margin-top: 20px !important;
+  padding-right: 0px !important;
+  margin-right: 0px;
+}
+
+#strat-title {
+	margin-top: 40px;
+	color: white !important;
+}
+
+#app-details { 
+	margin-top: 25px;
+}
+
+#loading-spinner {
+	margin: auto;
+}
+
+#loading-container {
+	text-align:center;
+}
+
+#loess-label {
+	margin-top: 25px;
+}
+
+#search-box {
+	margin-top: 10px;
+}
+
+#Timeline {
+	text-align: center;
+}
+
+.typeahead, .tt-query, .tt-hint {
+	font-size: 18px !important;
+}
+
+#cluster {
+	margin-top: 25px
+}
+
+#loess {
+	margin-top: 25px
+}
+
+#header-section {
+  margin: -25px 0 20px;
+  color: #FAFAFA;
+  padding: 15px 20px;
+  box-shadow: 0 0 7px #000;
+  background: #000000;
+} 
+
+#header-section a {
+  color: white !important;
+  text-decoration: underline;
+}
+ 
+h1 {
+  font-family: "Arvo", serif;
+  font-weight: bold;
+  color: #286090;
+}
+
+h3 {
+  font-family: "Arvo", serif;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+li>a {
+  font-family: "Arvo", serif;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+li {
+  font-family: "Arvo", serif;
+}
+
+p {
+  font-family: "Arvo", serif;
+}
+
+label {
+  font-family: "Arvo", serif;
+}
+
+
