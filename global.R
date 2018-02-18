@@ -1,4 +1,9 @@
 library(tidyverse)
+library(shiny)
+library(shinyWidgets)
+library(DT)
+library(highcharter)
+library(shinydashboard)
 
 options(stringsAsFactors = FALSE)
 
