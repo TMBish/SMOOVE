@@ -13,7 +13,7 @@ shinyServer(function(input, output, session) {
   # React to player search -----------------------------------------------
   observeEvent(input$player_search, {
     
-    player_nme = input$player %>% str_split(" ")
+    player_nme = input$player %>% str_split(" ", simplify = TRUE)
     first_name = player_nme[1]
     last_name = player_nme[2]
     
@@ -24,15 +24,36 @@ shinyServer(function(input, output, session) {
     gl_ = get_player_gamelog(id_)
     
     # Update points
-    revals$pts = gf_ %>% pull(pts) %>% mean()
+    revals$pts = gl_ %>% pull(pts) %>% mean()
     
   })
   
   # Value Boxes
   output$vb_points <- renderValueBox({
     valueBox(
-      revals$pts, "Approval", icon = icon("thumbs-up", lib = "glyphicon"),
-      color = "yellow"
+      revals$pts, "Points", icon = icon("adjust", lib = "font-awesome"),
+      color = "blue", width = 12
+    )
+  })
+  
+  output$vb_rebounds <- renderValueBox({
+    valueBox(
+      revals$pts, "Rebounds", icon = icon("adjust", lib = "font-awesome"),
+      color = "blue", width = 12
+    )
+  })
+  
+  output$vb_assists <- renderValueBox({
+    valueBox(
+      revals$pts, "Assists", icon = icon("adjust", lib = "font-awesome"),
+      color = "blue", width = 12
+    )
+  })
+  
+  output$vb_to <- renderValueBox({
+    valueBox(
+      revals$pts, "Turnovers", icon = icon("adjust", lib = "font-awesome"),
+      color = "blue", width = 12
     )
   })
   

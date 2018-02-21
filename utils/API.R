@@ -1,9 +1,4 @@
-library(tidyverse)
-library(httr)
-library(jsonlite)
-library(purrr)
-library(glue)
-library(stringr)
+
 
 get_player = function(first_name, last_name, id_only = TRUE) {
   
