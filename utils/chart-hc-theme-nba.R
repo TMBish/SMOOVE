@@ -14,7 +14,7 @@ hc_theme_nba = function() {
         )
         # shadow = TRUE
       ),
-      colors = list("#1D428A", "#ED074F", "#FE5F55", "#C1E1F1", "#5FEF9B"),
+      colors = list("#0e1111", "#1D428A", "#ED074F", "#FE5F55", "#C1E1F1", "#5FEF9B"),
       title = list(
         style = header_style,
         align = "left"
@@ -42,16 +42,17 @@ hc_theme_nba = function() {
       ),
       plotOptions = list(
         line = list(marker = list(symbol = "circle", lineWidth = 2, radius = 0)),
+        scatter = list(marker = list(symbol = "square", radius = 3)),
         spline = list(marker = list(symbol = "circle", lineWidth = 2, radius = 0)),
         column = list(dataLabels = list(backgroundColor = "#FFF"))
       ),
       legend = list(
         align = "right",
-        layout = "vertical",
+        layout = "horizontal",
         backgroundColor = "#FFF",
         shadow = TRUE,
         title = "Legend",
-        verticalAlign = "middle"
+        verticalAlign = "bottom"
       )
     )
 }

@@ -10,7 +10,7 @@ get_all_players = function(season = NULL, only_current_plyrs = 1) {
   
   # Assemble Params
   params = list(
-    'Season' = get_current_season(),
+    'Season' = season,
     'LeagueID' = '00', # ID for the NBA
     'IsOnlyCurrentSeason' = only_current_plyrs # 1 = only current
   )

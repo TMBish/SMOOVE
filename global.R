@@ -18,6 +18,10 @@ options(stringsAsFactors = FALSE)
 # Config
 app_title = "NBA Pocketbook"
 
+# Defaults
+filter = dplyr::filter
+lag = dplyr::lag
+
 # Load Utils --------------------------------------------------------------
 sapply(list.files("./utils/", pattern = "*.R$", full.names = TRUE),source)
 

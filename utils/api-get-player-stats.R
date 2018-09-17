@@ -67,6 +67,6 @@ get_player_stats = function(player_id = NULL, season = NULL) {
   
   df_2 = setNames(df_2, colnames_2)
   
-  return(df)
+  return(df_2)
   
 }

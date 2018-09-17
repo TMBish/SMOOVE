@@ -9,6 +9,8 @@ basic-stats:
     col: fg3_pct
     volume-stat: fg3a
     volume-stat-label: Three Pointers Attempted
+  Three Point Makes:
+    col: fg3m
   Free Throw %:
     col: ft_pct
     volume-stat: fta
