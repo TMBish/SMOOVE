@@ -27,7 +27,8 @@ reponse_to_df <- function(response, index = 1) {
   df = setNames(df, colnames)
   
   # Auto Detect Data Types
-  df = df %>% type_convert()
+  df = df %>% 
+    type_convert()
   
   return(df)
   

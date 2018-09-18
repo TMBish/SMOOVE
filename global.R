@@ -12,6 +12,7 @@ library(jsonlite)
 library(purrr)
 library(glue)
 library(stringr)
+library(assertthat)
 
 options(stringsAsFactors = FALSE)
 
