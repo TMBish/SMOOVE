@@ -29,6 +29,10 @@ h1 {
   font-family: 'Bitter', serif;
 }
 
+/* Title Bar */
+.title-bar {
+  height: 75px;
+}
 
 /* Sidebar*/
 

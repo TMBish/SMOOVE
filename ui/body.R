@@ -1,10 +1,16 @@
 div(
   
+  div(class = "header-box",
   fluidRow(
     
-    column(12,  div(class = "header-box", 
-      
-      h1("CORE STATS."),
+    column(6,
+
+      h1("CORE STATS.")
+
+    ),
+
+    column(6,
+
       pickerInput(
         inputId = "core_stat_type", 
         label = "", 
@@ -13,7 +19,8 @@ div(
         options = list(title = "SELECT A STAT.")
       )
     )
-  )
+
+    )
   ),
  
   
@@ -23,7 +30,7 @@ div(
     ),
     
     box(width = 6,
-      highchartOutput("rebounds")
+      highchartOutput("core_2")
     )
     
   )

@@ -12,7 +12,7 @@ shinyUI(
     
     #source("./ui/nav-bar.R", local=TRUE)$value,
   
-    fluidRow(class = 'center-children',
+    fluidRow(class = 'center-children title-bar',
       
         column(3,
           h1("NBA PocketBook")

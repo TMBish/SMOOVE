@@ -4,7 +4,8 @@ shinyServer(function(input, output, session) {
   # Reactive Values Store ---------------------------------------------------
   revals = reactiveValues(
     gamelog = NULL,
-    charts = NULL,
+    season_charts = NULL,
+    career_charts = NULL,
     player_stat_table = NULL,
     pts = 0,
     rebs = 0,
@@ -25,8 +26,12 @@ shinyServer(function(input, output, session) {
     
     # Update points
     #revals$pts = gl_ %>% pull(pts) %>% mean()
-    # Update gamelog
+    
+    # Update Season Gamelog
     revals$gamelog = get_player_gamelog(id_, season = "2017-18")
+    
+    # Update Career Stats
+    revals$career = get_player_career_stats(id_)
     
   })
   
@@ -35,11 +40,14 @@ shinyServer(function(input, output, session) {
     
     if (!is.null(revals$gamelog)) {
       
-      revals$charts = build_chart_set(revals$gamelog)
+      revals$season_charts = build_season_charts(revals$gamelog)
 
       
     }
     
+    if (!is.null(revals$career))
+    
+      revals$career_charts = build_career_charts(revals$career)
   })
   
   # Player Stat Overview Table
@@ -47,7 +55,7 @@ shinyServer(function(input, output, session) {
     
     datatable(
       revals$player_stat_table
-      , colnames = c('Statistic', 'Per Game', "Per36", "Position Per36 Median")
+      , colnames = c('Statistic', 'Per Game', "Per 36 Mins", "Pos. Per36 Median")
       , rownames = FALSE
       , selection = "none"
       #, style = 'bootstrap'
@@ -68,7 +76,15 @@ shinyServer(function(input, output, session) {
     
     chart_type = input$core_stat_type
     
-    revals$charts[[chart_type]]
+    revals$season_charts[[chart_type]]
+    
+  })
+  
+  output$core_2 = renderHighchart({
+    
+    chart_type = input$core_stat_type
+    
+    revals$career_charts[[chart_type]]
     
   })
   # output$rebounds = renderHighchart({
