@@ -1,50 +1,31 @@
 div(
   
-  h2("Core Stats"),
-  
   fluidRow(
-    box(width = 4,
-      highchartOutput("points")
-    ),
     
-    box(width = 4,
-      highchartOutput("rebounds")
-    ),
-    
-    box(width = 4,
-      highchartOutput("assists")
-    )
-  ),
-  
-  h2("Efficiency"),
-  
-  fluidRow(
-    box(width = 4,
-       highchartOutput("fg_pct")
-    ),
-    
-    box(width = 4,
-       highchartOutput("three_fg_pct")
-    ),
-    
-    box(width = 4,
-       highchartOutput("turnovers")
-    )
-  ),
- 
-  h2("Defense"),
-  
-  fluidRow(
-    box(width = 4,
-      highcharts_demo()
-    ),
-    
-    box(width = 4,
-      highcharts_demo()
-    ),
-    
-    box(width = 4,
-      highcharts_demo()
+    column(12,  div(class = "header-box", 
+      
+      h1("CORE STATS."),
+      pickerInput(
+        inputId = "core_stat_type", 
+        label = "", 
+        selected = "Points",
+        choices = c("Points", "Rebounds", "Assists"),
+        options = list(title = "SELECT A STAT.")
+      )
     )
   )
+  ),
+ 
+  
+  fluidRow(
+    box(width = 6,
+      highchartOutput("core_1")
+    ),
+    
+    box(width = 6,
+      highchartOutput("rebounds")
+    )
+    
+  )
+  
 )

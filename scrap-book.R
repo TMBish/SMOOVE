@@ -73,19 +73,20 @@ player_stats %>%
 # Testing an API endpoint --------------------------------------------------------------
 
 # Params
-endpoint = 'commonteamroster'
+endpoint = 'playercareerstats'
 
 # Assemble Params
 params = list(
 	'Season' = "2017-18",
-	# 'LeagueID' = '00', # ID for the NBA
+	 'LeagueID' = '00', # ID for the NBA
+	'PerMode' = 'Per36',
 	# 'IsOnlyCurrentSeason' = 1
-	#'PlayerID' = plyrid,
-	'TeamID' = '1610612750'
+	'PlayerID' = "2544"
+	#'TeamID' = '1610612750'
 )
 
 # Submit Request
 response = submit_request(endpoint, params)
 
 # Convert first element of response to DF
-df = reponse_to_df(response, 1)
+df = response_to_df(response, 1)

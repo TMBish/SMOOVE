@@ -1,29 +1,40 @@
 basic-stats:
   Points: 
+    type: core
     col: pts
   Field Goal %:
+    type: efficiency
     col: fg_pct
     volume-stat: fga
     volume-stat-label: Field Goals Attempted
   Three Point %:
+    type: efficiency
     col: fg3_pct
     volume-stat: fg3a
     volume-stat-label: Three Pointers Attempted
   Three Point Makes:
+    type: core
     col: fg3m
   Free Throw %:
+    type: efficiency
     col: ft_pct
     volume-stat: fta
     volume-stat-label: Free Throws Attempted
   Rebounds:
+    type: core
     col: reb
   Assists:
+    type: core
     col: ast
   Steals:
+    type: core
     col: stl
   Blocks:
+    type: core
     col: blk
   Turn Overs:
+    type: efficiency
     col: tov
   Minutes: 
+    type: core
     col: min

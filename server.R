@@ -5,6 +5,7 @@ shinyServer(function(input, output, session) {
   revals = reactiveValues(
     gamelog = NULL,
     charts = NULL,
+    player_stat_table = NULL,
     pts = 0,
     rebs = 0,
     assists = 0,
@@ -14,20 +15,18 @@ shinyServer(function(input, output, session) {
   # React to player search -----------------------------------------------
   observeEvent(input$player_search, {
     
-    player_nme = input$player %>% str_split(" ", simplify = TRUE)
-    first_name = player_nme[1]
-    last_name = player_nme[2]
-    
     # Player ID
-    id_ = get_player(first_name, last_name)
+    id_ = player_master %>% filter(player == input$player_name) %>% pull(player_id)
     
-    # Get Game Log
-    gl_ = get_player_gamelog(id_, season = "2017-18")
+    print(id_)
+    
+    # Get Overview Player Table
+    revals$player_stat_table = build_player_table(id_, stats_master, player_master)
     
     # Update points
     #revals$pts = gl_ %>% pull(pts) %>% mean()
     # Update gamelog
-    revals$gamelog = gl_
+    revals$gamelog = get_player_gamelog(id_, season = "2017-18")
     
   })
   
@@ -43,27 +42,52 @@ shinyServer(function(input, output, session) {
     
   })
   
-  # Core Stats
-  output$points = renderHighchart({
-    revals$charts$Points
-  })
-  output$rebounds = renderHighchart({
-    revals$charts$Rebounds
-  })
-  output$assists = renderHighchart({
-    revals$charts$Assists
+  # Player Stat Overview Table
+  output$player_stat_table = renderDT({
+    
+    datatable(
+      revals$player_stat_table
+      , colnames = c('Statistic', 'Per Game', "Per36", "Position Per36 Median")
+      , rownames = FALSE
+      , selection = "none"
+      #, style = 'bootstrap'
+      , class = 'compact hover row-border'
+      , options = list(
+        dom = 't',
+        pageLength = 20,
+        columnDefs = list(
+          list(className = 'dt-center', targets = c(1, 2,3))
+      )
+    ))
+    
+    
   })
   
-  # Efficiency Stats
-  output$fg_pct = renderHighchart({
-    revals$charts$`Field Goal %`
+  # Core Stats
+  output$core_1 = renderHighchart({
+    
+    chart_type = input$core_stat_type
+    
+    revals$charts[[chart_type]]
+    
   })
-  output$three_fg_pct = renderHighchart({
-    revals$charts$`Three Point %`
-  })
-  output$turnovers = renderHighchart({
-    revals$charts$`Turn Overs`
-  })
+  # output$rebounds = renderHighchart({
+  #   revals$charts$Rebounds
+  # })
+  # output$assists = renderHighchart({
+  #   revals$charts$Assists
+  # })
+  # 
+  # # Efficiency Stats
+  # output$fg_pct = renderHighchart({
+  #   revals$charts$`Field Goal %`
+  # })
+  # output$three_fg_pct = renderHighchart({
+  #   revals$charts$`Three Point %`
+  # })
+  # output$turnovers = renderHighchart({
+  #   revals$charts$`Turn Overs`
+  # })
   
 
   

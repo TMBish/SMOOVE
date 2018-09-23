@@ -36,7 +36,7 @@ chart_rolling_mean = function(gamelog, stat_name, window = 5) {
     hc_add_series(name = glue("Raw {stat_name}"), df, "scatter", hcaes(x = game_number, y = raw)) %>%
     hc_add_series(name = "Rolling Average", df, "spline", hcaes(x = game_number, y = rolling_average)) %>%
     hc_add_series(name = "Season Average", df, "spline", visible= FALSE, hcaes(x = game_number, y = season_average)) %>%
-    hc_title(text = stat_name) %>%
+    hc_title(text = "Intra Season") %>%
     #hc_subtitle(text = glue("With rolling {window} game average and cumulative season average")) %>%
     hc_yAxis(title = list(text = stat_name)) %>%
     hc_xAxis(title = list(text = "Game Number")) %>%

@@ -36,3 +36,7 @@ app_config = yaml.load_file("./data/config.yaml")
 # player_master = build_player_data()
 # write_rds(player_master, "data/player_master.rds")
 player_master = read_rds("data/player_master.rds")
+
+# stats_master = get_all_player_stats(season = "2017-18", per_mode = "PerGame")
+# write_rds(stats_master, "data/stats_master.rds")
+stats_master = read_rds("data/stats_master.rds")

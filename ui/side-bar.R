@@ -12,17 +12,25 @@ div(class = "sidebar",
   ),
   
   fluidRow(class= "center-children",
-    column(9,
+    column(8,
       shinyTypeahead::typeaheadInput(
         "player_name", label = "",
         items = 15,
-        value = "Lebron James",
+        value = "LeBron James",
         choices = player_master$player
       ) 
       
     ),
     
-    column(3,
+    # column(4,
+    #   pickerInput(
+    #     inputId = "season", 
+    #     label = "", 
+    #     choices = c("2017-18", "2016-17", "2015-16"),
+    #     options = list(title = "select a season."))
+    # ),
+    
+    column(4,
       
       actionBttn(
         "player_search", 
@@ -41,5 +49,9 @@ div(class = "sidebar",
   # Overview
   div(class = "header-box",
     h1("OVERVIEW.")
-  )
+  ),
+  
+  br(),
+  
+  DTOutput("player_stat_table")
 )

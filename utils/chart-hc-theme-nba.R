@@ -1,7 +1,7 @@
 hc_theme_nba = function() {
   
-  base_font = "Arial"
-  header_font = "Helvetica Neue"
+  base_font = "Bitter"
+  header_font = "Bitter"
   
   header_style = list(fontFamily = header_font, fontWeight = "bold", color = "#000000")
   

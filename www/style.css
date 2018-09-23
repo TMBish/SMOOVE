@@ -1,7 +1,11 @@
-
-/* Fonts */
+/* Global Options */
 
 @import url('https://fonts.googleapis.com/css?family=Bitter|Permanent+Marker');
+
+body {
+  padding: 2%;
+  font-family: 'Bitter', serif;
+}
 
 
 /* Centering */
@@ -17,7 +21,8 @@
 /* Headers */
 
 .header-box {
-  border-bottom: 3px solid #232b2b
+  border-bottom: 2px solid #232b2b;
+  margin-bottom: 10px;
 }
 
 h1 {
@@ -33,7 +38,7 @@ h1 {
   border: 1px solid #232b2b;
   border-right-width: 2px;
   border-bottom-width: 2px;
-  min-height: 1500px;
+  min-height: 600px;
 }
 
 #player_name {
@@ -46,7 +51,10 @@ h1 {
   margin-top: 15px;
 }
 
-
+#player_stat_table {
+  font-family: 'Bitter', serif;
+  font-size: 16px;
+}
 
 
 /* Various Utilities */
