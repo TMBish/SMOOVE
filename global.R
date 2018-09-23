@@ -13,6 +13,8 @@ library(purrr)
 library(glue)
 library(stringr)
 library(assertthat)
+library(furrr)
+library(shinyTypeahead)
 
 options(stringsAsFactors = FALSE)
 
@@ -28,3 +30,9 @@ sapply(list.files("./utils/", pattern = "*.R$", full.names = TRUE),source)
 
 # Load in App Config
 app_config = yaml.load_file("./data/config.yaml")
+
+# Initialise Data --------------------------------------------------------------
+
+# player_master = build_player_data()
+# write_rds(player_master, "data/player_master.rds")
+player_master = read_rds("data/player_master.rds")
