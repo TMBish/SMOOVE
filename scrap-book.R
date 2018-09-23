@@ -13,6 +13,7 @@ library(purrr)
 library(glue)
 library(stringr)
 library(assertthat)
+library(furrr)
 
 options(stringsAsFactors = FALSE)
 
@@ -51,11 +52,23 @@ teams =
 
 
 # Get rosters and positions
+plan(multiprocess)
 rosters = 
 	teams %>%
 	pull(team_id) %>%
-	map(get_team_roster) %>%
-	bind_rows()
+	future_map(get_team_roster) %>%
+  map(mutate_at, vars(num), as.character) %>%
+	bind_rows() %>%
+  select(-leagueid, -player, -birth_date)
+
+
+# Join player stats and roster data
+player_stats %>%
+  inner_join(rosters, by = "player_id") %>%
+  group_by(position) %>%
+  summarise(n = n(), x = mean(pts))
+
+
 
 # Testing an API endpoint --------------------------------------------------------------
 

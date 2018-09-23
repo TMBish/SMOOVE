@@ -1,6 +1,4 @@
-get_player_info = function(
-  player_id
-) {
+get_player_info = function(player_id) {
   
   # Params
   endpoint = 'commonplayerinfo'
