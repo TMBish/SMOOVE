@@ -69,6 +69,16 @@ player_stats %>%
   summarise(n = n(), x = mean(pts))
 
 
+# Get player career
+bron_stats = get_player_career_stats(2544)
+
+# Career Charts - One Example
+chart_stat_career(bron_stats, "Three Point %")
+
+# Career Charts - One Example
+build_career_charts(bron_stats)
+
+
 
 # Testing an API endpoint --------------------------------------------------------------
 
@@ -90,5 +100,11 @@ response = submit_request(endpoint, params)
 
 # Convert first element of response to DF
 df = response_to_df(response, 1)
+
+
+
+# Testing an API endpoint --------------------------------------------------------------
+
+
 
 
