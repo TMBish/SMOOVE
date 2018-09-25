@@ -45,13 +45,28 @@ div(class = "sidebar",
     
   ),
 
+  # Overview
+  div(class = "header-box",
+    h1("OPTIONS.")
+  ),
+  
+  fluidRow(
+    column(4,
+      prettySwitch(
+       inputId = "per_36_enable",
+       label = "Per 36", 
+       status = "success",
+       fill = TRUE
+      )
+    )
+
+  ),
+
   
   # Overview
   div(class = "header-box",
     h1("OVERVIEW.")
   ),
-  
-  br(),
-  
+    
   DTOutput("player_stat_table")
 )

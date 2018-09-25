@@ -23,7 +23,8 @@ hc_theme_nba = function() {
       xAxis = list(
         lineWidth = 1, lineColor = "#011627",
         tickWidth = 0,
-        title = list(style = header_style)
+        title = list(style = header_style),
+        labels = list(autoRotation = 0, overflow = "justify")
       ),
       yAxis = list(
         lineWidth = 1, lineColor = "#011627",
@@ -49,11 +50,11 @@ hc_theme_nba = function() {
       ),
       legend = list(
         align = "right",
-        layout = "horizontal",
+        layout = "vertical",
         backgroundColor = "#FFF",
         shadow = TRUE,
         title = "Legend",
-        verticalAlign = "bottom"
+        verticalAlign = "middle"
       )
     )
 }

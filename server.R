@@ -72,7 +72,7 @@ shinyServer(function(input, output, session) {
   })
   
   # Core Stats
-  output$core_1 = renderHighchart({
+  output$core_season = renderHighchart({
     
     chart_type = input$core_stat_type
     
@@ -80,7 +80,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  output$core_2 = renderHighchart({
+  output$core_career = renderHighchart({
     
     chart_type = input$core_stat_type
     

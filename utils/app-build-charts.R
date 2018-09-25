@@ -117,11 +117,13 @@ chart_stat_career = function(career_stats, stat_name, window = 3) {
       column = list(
         dataLabels = list(
           enabled = TRUE,
-          inside = TRUE,
-          verticalAlign = "top",
-          color = "#FFF",
+          #inside = TRUE,
+          #verticalAlign = "top",
+          #color = "#FFF",
           backgroundColor = NULL,
-          style = list(textOutline = NULL, fontSize = "10px", fontWeight = "bold"),
+          style = list(textOutline = NULL,
+                       #fontSize = "6px", 
+                       fontWeight = "bold"),
           formatter = formatter
         )
       )

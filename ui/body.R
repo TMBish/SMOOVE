@@ -26,11 +26,11 @@ div(
   
   fluidRow(
     box(width = 6,
-      highchartOutput("core_1")
+      highchartOutput("core_career")
     ),
     
     box(width = 6,
-      highchartOutput("core_2")
+      highchartOutput("core_season")
     )
     
   )
