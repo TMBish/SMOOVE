@@ -3,19 +3,15 @@
 @import url('https://fonts.googleapis.com/css?family=Bitter|Permanent+Marker');
 
 body {
-  padding: 2%;
+  padding: 1%;
   font-family: 'Bitter', serif;
+  background: url("back.png") repeat;
 }
-
 
 /* Centering */
 
 .center-children {
   display:flex;
-}
-
-.center-children > div {
-	padding: 15px;
 }
 
 /* Headers */
@@ -29,6 +25,12 @@ h1 {
   font-family: 'Bitter', serif;
 }
 
+h3 {
+  margin-top: 0px;
+}
+
+
+
 /* Title Bar */
 .title-bar {
   height: 75px;
@@ -37,32 +39,48 @@ h1 {
 /* Sidebar*/
 
 .sidebar {
+  background: #FFF;
+  color: #000000;
   width: 100%;
-  padding: 15px;
   border: 1px solid #232b2b;
   border-right-width: 2px;
   border-bottom-width: 2px;
   min-height: 600px;
 }
 
+.pad-15 {
+  padding: 15px;
+}
+
 #player_name {
-  border: 0px;
-  font-size: 2em;
-  color: #232b2b;
+/*  border: 0px;
+*/  color: #232b2b;
+  font-size: 14px;
+  text-align: center;
 }
 
 #player_search {
-  margin-top: 15px;
+  margin-top: 21px;
+}
+
+#player_search:focus {
+    outline: none;
 }
 
 #player_stat_table {
   font-family: 'Bitter', serif;
-  font-size: 16px;
+  font-size: 12px;
+}
+
+/* Body */
+
+.box {
+  border: 0px;
 }
 
 
-/* Various Utilities */
 
+/* Various Utilities */
 
 .centered {
   display: flex;
@@ -78,24 +96,9 @@ h1 {
 
 /* Sidebar */
 
-.sidebar {
-  width: 100%;
-  color: #000000;
-}
-
-.sidebar > img {
-  width: 100%;
-  margin-bottom: 15px;
-}
-
 .sidebar > hr {
   margin-left: 0px;
   margin-right: 0px;
-}
-
-.sidebar > img {
-  width: 100%;
-  margin-bottom: 15px;
 }
 
 .right-bar > img {
@@ -104,27 +107,4 @@ h1 {
 
 .right-bar div.well {
   height: 1000px;
-}
-
-/* Nav Bar */
-.nav-bar {
-    overflow: hidden;
-    background-color: #333;
-    position: fixed;
-    top: 0;
-    width: 100%;
-    float: left;
-}
-
-/* Input inside the navbar */
-.nav-bar input {
-    float: left;
-}
-.nav-bar h1 {
-    float: left;
-}
-
-/* Main Page */
-.main-page {
-    margin-top: 20px; 
 }

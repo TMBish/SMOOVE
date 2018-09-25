@@ -35,9 +35,9 @@ chart_stat_season = function(gamelog, stat_name, window = 5) {
   # Create Basic Chart
   chart = 
     highchart() %>%
-    hc_add_series(name = glue("Raw {stat_name}"), df, "scatter", hcaes(x = game_number, y = raw)) %>%
-    hc_add_series(name = "Rolling Average", df, "spline", hcaes(x = game_number, y = rolling_average)) %>%
-    hc_add_series(name = "Season Average", df, "spline", visible= FALSE, hcaes(x = game_number, y = season_average)) %>%
+    hc_add_series(name = glue("{stat_name}"), df, "scatter", hcaes(x = game_number, y = raw)) %>%
+    hc_add_series(name = "Rolling Avg", df, "spline", hcaes(x = game_number, y = rolling_average)) %>%
+    hc_add_series(name = "Season Avg", df, "spline", visible= FALSE, hcaes(x = game_number, y = season_average)) %>%
     hc_title(text = seaon_name) %>%
     hc_yAxis(title = list(text = stat_name)) %>%
     hc_xAxis(title = list(text = "Game Number")) %>%

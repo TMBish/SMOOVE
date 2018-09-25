@@ -1,28 +1,24 @@
-div(
+div(class = "pad-15",
   
   div(class = "header-box",
   fluidRow(
     
     column(6,
 
-      h1("CORE STATS.")
-
-    ),
-
-    column(6,
-
-      pickerInput(
-        inputId = "core_stat_type", 
-        label = "", 
-        selected = "Points",
-        choices = c("Points", "Rebounds", "Assists"),
-        options = list(title = "SELECT A STAT.")
-      )
-    )
+      h3("CORE STATS.")
 
     )
+
+  )
   ),
  
+  pickerInput(
+    inputId = "core_stat_type", 
+    label = "", 
+    selected = "Points",
+    choices = c("Points", "Rebounds", "Assists"),
+    options = list(title = "SELECT A STAT.")
+  ),
   
   fluidRow(
     box(width = 6,

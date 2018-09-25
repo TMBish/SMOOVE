@@ -19,13 +19,8 @@ shinyServer(function(input, output, session) {
     # Player ID
     id_ = player_master %>% filter(player == input$player_name) %>% pull(player_id)
     
-    print(id_)
-    
     # Get Overview Player Table
     revals$player_stat_table = build_player_table(id_, stats_master, player_master)
-    
-    # Update points
-    #revals$pts = gl_ %>% pull(pts) %>% mean()
     
     # Update Season Gamelog
     revals$gamelog = get_player_gamelog(id_, season = "2017-18")
@@ -104,40 +99,6 @@ shinyServer(function(input, output, session) {
   # output$turnovers = renderHighchart({
   #   revals$charts$`Turn Overs`
   # })
-  
-
-  
-  
-  
-  # Value Boxes
-  # output$vb_points <- renderValueBox({
-  #   valueBox(
-  #     revals$pts, "Points", icon = icon("adjust", lib = "font-awesome"),
-  #     color = "blue", width = 12
-  #   )
-  # })
-  
-  # output$vb_rebounds <- renderValueBox({
-  #   valueBox(
-  #     revals$pts, "Rebounds", icon = icon("adjust", lib = "font-awesome"),
-  #     color = "blue", width = 12
-  #   )
-  # })
-  
-  # output$vb_assists <- renderValueBox({
-  #   valueBox(
-  #     revals$pts, "Assists", icon = icon("adjust", lib = "font-awesome"),
-  #     color = "blue", width = 12
-  #   )
-  # })
-  
-  # output$vb_to <- renderValueBox({
-  #   valueBox(
-  #     revals$pts, "Turnovers", icon = icon("adjust", lib = "font-awesome"),
-  #     color = "blue", width = 12
-  #   )
-  # })
-  
   
 })
 

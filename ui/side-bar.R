@@ -1,5 +1,5 @@
 
-div(class = "sidebar",       
+div(class = "sidebar pad-15",       
   # Logo
   # shiny::img(
   #   src = "nba_pocketbook_logo.png", 
@@ -8,7 +8,7 @@ div(class = "sidebar",
   
   # Header
   div(class = "header-box",
-    h1("PLAYER.")
+    h3("PLAYER.")
   ),
   
   fluidRow(class= "center-children",
@@ -22,14 +22,6 @@ div(class = "sidebar",
       
     ),
     
-    # column(4,
-    #   pickerInput(
-    #     inputId = "season", 
-    #     label = "", 
-    #     choices = c("2017-18", "2016-17", "2015-16"),
-    #     options = list(title = "select a season."))
-    # ),
-    
     column(4,
       
       actionBttn(
@@ -38,16 +30,16 @@ div(class = "sidebar",
         icon = NULL, 
         style = "material-flat",
         color = "primary", 
-        size = "md", 
+        size = "sm", 
         block = TRUE, 
         no_outline = TRUE)
     )
     
-  ),
+  ), br(),
 
   # Overview
   div(class = "header-box",
-    h1("OPTIONS.")
+    h3("OPTIONS.")
   ),
   
   fluidRow(
@@ -60,12 +52,12 @@ div(class = "sidebar",
       )
     )
 
-  ),
+  ), br(),
 
   
   # Overview
   div(class = "header-box",
-    h1("OVERVIEW.")
+    h3("OVERVIEW.")
   ),
     
   DTOutput("player_stat_table")
