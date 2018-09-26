@@ -33,7 +33,7 @@ basic-stats:
     type: core
     col: blk
   Turn Overs:
-    type: efficiency
+    type: core
     col: tov
   Minutes: 
     type: core

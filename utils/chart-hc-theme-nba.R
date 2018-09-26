@@ -1,7 +1,7 @@
 hc_theme_nba = function() {
   
-  base_font = "Bitter"
-  header_font = "Bitter"
+  base_font = "Inconsolata"
+  header_font = "Inconsolata"
   
   header_style = list(fontFamily = header_font, fontWeight = "bold", color = "#000000")
   
@@ -23,13 +23,16 @@ hc_theme_nba = function() {
       xAxis = list(
         lineWidth = 1, lineColor = "#011627",
         tickWidth = 0,
-        title = list(style = header_style),
-        labels = list(autoRotation = 0, overflow = "justify")
+        title = list(style = header_style)
+        #labels = list(autoRotation = 0, overflow = "justify")
       ),
       yAxis = list(
         lineWidth = 1, lineColor = "#011627",
         tickWidth = 0,
-        title = list(style = header_style)
+        gridLineWidth = 0,
+        title = list(style = header_style),
+        showLastLabel = FALSE,
+        showFirstLabel = FALSE
       ),
       subtitle = list(
         style = list(fontStyle = "italic", color ="#000000"), 
@@ -44,17 +47,19 @@ hc_theme_nba = function() {
       ),
       plotOptions = list(
         line = list(marker = list(symbol = "circle", lineWidth = 3, radius = 2)),
-        scatter = list(marker = list(symbol = "square", radius = 3)),
+        scatter = list(marker = list(symbol = "square", radius = 2)),
         spline = list(marker = list(symbol = "circle", lineWidth = 2, radius = 0)),
+        # column = list(dataLabels = list(backgroundColor = "#FFF"))
         column = list(dataLabels = list(backgroundColor = "#FFF"))
+
       ),
       legend = list(
-        align = "right",
+        align = "center",
         layout = "horizontal",
         backgroundColor = "#FFF",
         shadow = TRUE,
         title = "Legend",
-        verticalAlign = "top"
+        verticalAlign = "bottom"
       )
     )
 }

@@ -8,7 +8,7 @@ div(class = "sidebar pad-15",
   
   # Header
   div(class = "header-box",
-    h3("PLAYER.")
+    h4("PLAYER.")
   ),
   
   fluidRow(class= "center-children",
@@ -39,7 +39,7 @@ div(class = "sidebar pad-15",
 
   # Overview
   div(class = "header-box",
-    h3("OPTIONS.")
+    h4("OPTIONS.")
   ),
   
   fluidRow(
@@ -57,7 +57,7 @@ div(class = "sidebar pad-15",
   
   # Overview
   div(class = "header-box",
-    h3("OVERVIEW.")
+    h4("OVERVIEW.")
   ),
     
   DTOutput("player_stat_table")

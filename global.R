@@ -28,8 +28,14 @@ lag = dplyr::lag
 # Load Utils --------------------------------------------------------------
 sapply(list.files("./utils/", pattern = "*.R$", full.names = TRUE),source)
 
+
+# Config --------------------------------------------------------------
+
 # Load in App Config
 app_config = yaml.load_file("./data/config.yaml")
+
+core_fields = app_config$`basic-stats` %>% keep(~ .$type == "core") %>% names()
+efficiency_fields = app_config$`basic-stats` %>% keep(~ .$type == "efficiency") %>% names()
 
 # Initialise Data --------------------------------------------------------------
 

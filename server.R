@@ -3,14 +3,13 @@ shinyServer(function(input, output, session) {
   
   # Reactive Values Store ---------------------------------------------------
   revals = reactiveValues(
-    gamelog = NULL,
-    season_charts = NULL,
-    career_charts = NULL,
+    gamelog_raw = NULL,
+    gamelog_out = NULL,
+    career_raw = NULL,
+    career_out = NULL,
     player_stat_table = NULL,
-    pts = 0,
-    rebs = 0,
-    assists = 0,
-    to = 0
+    season_charts = NULL,
+    career_charts = NULL
   )
   
   # React to player search -----------------------------------------------
@@ -23,37 +22,58 @@ shinyServer(function(input, output, session) {
     revals$player_stat_table = build_player_table(id_, stats_master, player_master)
     
     # Update Season Gamelog
-    revals$gamelog = get_player_gamelog(id_, season = "2017-18")
+    revals$gamelog_raw = get_player_gamelog(id_, season = "2017-18")
     
     # Update Career Stats
-    revals$career = get_player_career_stats(id_)
+    revals$career_raw = get_player_career_stats(id_)
     
   })
+
+  # Per Mode Observer
+  observe({
+    
+    # Require these objects
+    req(revals$gamelog_raw)
+    req(revals$career_raw)
+
+    # Convert
+    if (input$per_36_enable) {
+      revals$gamelog_out = gamelog_to_perM(revals$gamelog_raw)
+      revals$career_out = career_to_perM(revals$career_raw)
+    } else {
+      revals$gamelog_out = revals$gamelog_raw
+      revals$career_out = revals$career_raw
+    }
+
+  })
+
   
   # Chart build observer
   observe({
     
-    if (!is.null(revals$gamelog)) {
-      
-      revals$season_charts = build_season_charts(revals$gamelog)
-
-      
+    if (!is.null(revals$gamelog_out)) {
+      revals$season_charts = build_season_charts(revals$gamelog_out)
     }
     
-    if (!is.null(revals$career))
+    if (!is.null(revals$career_out)) {
+      revals$career_charts = build_career_charts(revals$career_out)
+    }
     
-      revals$career_charts = build_career_charts(revals$career)
   })
   
   # Player Stat Overview Table
   output$player_stat_table = renderDT({
     
+    req(revals$player_stat_table)
+    
+    dtab = revals$player_stat_table %>% as.data.frame()
+    rownames(dtab) = dtab$statistic
+    
     datatable(
-      revals$player_stat_table
-      , colnames = c('Statistic', 'Per Game', "Per 36 Mins", "Pos. Per36 Median")
-      , rownames = FALSE
+      dtab %>% select(-statistic)
+      , colnames = c( 'Per Game', "Per 36 Mins", "Pos. Per36 Median")
+      #, rownames = FALSE
       , selection = "none"
-      #, style = 'bootstrap'
       , class = 'compact hover row-border'
       , options = list(
         dom = 't',
@@ -70,35 +90,39 @@ shinyServer(function(input, output, session) {
   output$core_season = renderHighchart({
     
     chart_type = input$core_stat_type
+    revals$season_charts[[chart_type]]
     
+  })
+
+  output$core_career = renderHighchart({
+    
+    chart_type = input$core_stat_type
+    revals$career_charts[[chart_type]]
+    
+  })
+
+    output$core_career1 = renderHighchart({
+    
+    chart_type = input$core_stat_type
+    revals$career_charts[[chart_type]]
+    
+  })
+  
+  
+  # Efficiency
+  output$efficiency_season = renderHighchart({
+    
+    chart_type = input$efficiency_stat_type
     revals$season_charts[[chart_type]]
     
   })
   
-  output$core_career = renderHighchart({
+  output$efficiency_career = renderHighchart({
     
-    chart_type = input$core_stat_type
-    
+    chart_type = input$efficiency_stat_type
     revals$career_charts[[chart_type]]
     
   })
-  # output$rebounds = renderHighchart({
-  #   revals$charts$Rebounds
-  # })
-  # output$assists = renderHighchart({
-  #   revals$charts$Assists
-  # })
-  # 
-  # # Efficiency Stats
-  # output$fg_pct = renderHighchart({
-  #   revals$charts$`Field Goal %`
-  # })
-  # output$three_fg_pct = renderHighchart({
-  #   revals$charts$`Three Point %`
-  # })
-  # output$turnovers = renderHighchart({
-  #   revals$charts$`Turn Overs`
-  # })
   
 })
 
