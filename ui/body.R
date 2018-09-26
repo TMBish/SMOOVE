@@ -22,18 +22,18 @@ div(class = "pad-15",
   
   fluidRow(
     box(width = 12,
-      highchartOutput("core_season", height = 250),
+      highchartOutput("core_season", height = 300),
     # ),
     fluidRow(
-    column(width = 6,
-       highchartOutput("core_career", height = 250)
+        column(width = 6,
+           highchartOutput("core_career", height = 250)
 
-    ),
-    column(width = 6,
-      highchartOutput("core_career1", height = 250)
-    )
-    
-    )
+        ),
+        column(width = 6,
+          highchartOutput("core_career1", height = 250)
+        )
+      
+      )
     )
   ),
 
@@ -58,14 +58,22 @@ div(class = "pad-15",
     ),
     
     fluidRow(
-      box(width = 6,
-        highchartOutput("efficiency_career")
-      ),
-      
-      box(width = 6,
-        highchartOutput("efficiency_season")
+      box(width = 12,
+        highchartOutput("efficiency_season", height = 300),
+      # ),
+      fluidRow(
+          column(width = 6,
+             highchartOutput("efficiency_career", height = 250)
+
+          ),
+          column(width = 6,
+            highchartOutput("efficiency_career1", height = 250)
+          )
+        
+        )
       )
-      
     )
+
+
   
 )

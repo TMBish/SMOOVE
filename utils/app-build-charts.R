@@ -111,7 +111,7 @@ chart_stat_career = function(career_stats, stat_name, window = 3) {
     hc_title(text = "Career") %>%
     hc_colors("#1d89ff") %>%
     hc_yAxis(title = list(text = stat_name)) %>%
-    hc_xAxis(title = list(text = "Season")) %>%
+    hc_xAxis(title = list(text = "Season"), labels = list(formatter = formatter)) %>%
     hc_add_theme(hc_theme_nba()) %>%
     hc_plotOptions(
       column = list(

@@ -40,7 +40,7 @@ div(class = "sidebar pad-15",
   # Overview
   div(class = "header-box",
     h4("OPTIONS.")
-  ),
+  ), br(),
   
   fluidRow(
     column(4,

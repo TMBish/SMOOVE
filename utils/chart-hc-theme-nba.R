@@ -54,12 +54,12 @@ hc_theme_nba = function() {
 
       ),
       legend = list(
-        align = "center",
-        layout = "horizontal",
+        align = "right",
+        layout = "vertical",
         backgroundColor = "#FFF",
         shadow = TRUE,
         title = "Legend",
-        verticalAlign = "bottom"
+        verticalAlign = "middle"
       )
     )
 }

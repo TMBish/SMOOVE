@@ -101,7 +101,7 @@ shinyServer(function(input, output, session) {
     
   })
 
-    output$core_career1 = renderHighchart({
+  output$core_career1 = renderHighchart({
     
     chart_type = input$core_stat_type
     revals$career_charts[[chart_type]]
@@ -123,6 +123,14 @@ shinyServer(function(input, output, session) {
     revals$career_charts[[chart_type]]
     
   })
+  
+    output$efficiency_career1 = renderHighchart({
+    
+    chart_type = input$efficiency_stat_type
+    revals$career_charts[[chart_type]]
+    
+  })
+  
   
 })
 
