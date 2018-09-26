@@ -43,8 +43,8 @@ h3 {
   color: #000000;
   width: 100%;
   border: 1px solid #232b2b;
-  border-right-width: 2px;
-  border-bottom-width: 2px;
+  border-right-width: 4px;
+  border-bottom-width: 4px;
   min-height: 600px;
 }
 
