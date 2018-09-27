@@ -1,4 +1,4 @@
-hc_theme_nba = function() {
+hc_theme_smoove = function() {
   
   base_font = "Inconsolata"
   header_font = "Inconsolata"

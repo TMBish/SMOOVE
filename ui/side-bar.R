@@ -1,10 +1,5 @@
 
 div(class = "sidebar pad-15",       
-  # Logo
-  # shiny::img(
-  #   src = "nba_pocketbook_logo.png", 
-  #   local = T
-  # ),
   
   # Header
   div(class = "header-box",

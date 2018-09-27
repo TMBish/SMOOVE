@@ -38,6 +38,11 @@ navbarPage("SMOOVE",theme=shinythemes::shinytheme("sandstone"),
     )
     
     
+  ),
+  
+  tabPanel("NEW THING.",
+           
+    h1("Hannah Sucks")        
   )
 )
 
