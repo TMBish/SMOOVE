@@ -103,8 +103,19 @@ df = response_to_df(response, 1)
 
 
 
-# Testing an API endpoint --------------------------------------------------------------
+# All the api functions --------------------------------------------------------------
 
+# Get player
+plyrid = get_player("Jimmy", "Butler")
 
+# Get player gamelog
+gl = get_player_gamelog(plyrid, season = "2017-18")
 
+# Get all player stats - season averages for all players
+player_stats = get_all_player_stats(season = "2017-18")
+
+# Career stasts - players career stasts
+career_stats = get_player_career_stats(plyrid)
+
+player_master = build_player_data()
 

@@ -1,6 +1,17 @@
-shinyUI(
+# shinyUI(
+navbarPage("SMOOVE",theme=shinythemes::shinytheme("sandstone"),
+
+    tabPanel("PLAYER.",
+    
+    #source("./ui/nav-bar.R", local=TRUE)$value,
   
-  fluidPage(
+    # fluidRow(class = 'center-children title-bar',
+      
+    #     column(3,
+    #       h1("SMOOVE")
+    #     )
+        
+    # ),     
     
     # Shiny Dashboard CSS
     tags$head(
@@ -9,16 +20,6 @@ shinyUI(
       includeCSS(file.path('www', path = "style.css"))
     ),
     
-    
-    #source("./ui/nav-bar.R", local=TRUE)$value,
-  
-    fluidRow(class = 'center-children title-bar',
-      
-        column(3,
-          h1("SMOOVE")
-        )
-        
-    ),     
     
     fluidRow(class = "main-page",
              

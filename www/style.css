@@ -5,10 +5,24 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto+Mono');
 
 body {
-  padding: 1%;
   font-family: 'Roboto Mono', serif;
   background: url("back.png") repeat;
 }
+
+/* Title Bar */
+.title-bar {
+  height: 75px;
+  width: 100vw;
+  background: black;
+  color: white;
+}
+
+
+/* App Body*/
+.main-page {
+  padding: 1%;
+}
+
 
 /* Centering */
 
@@ -33,12 +47,6 @@ h4 {
   margin-top: 0px;
 }
 
-
-
-/* Title Bar */
-.title-bar {
-  height: 75px;
-}
 
 /* Sidebar*/
 
