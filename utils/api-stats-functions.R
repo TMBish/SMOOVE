@@ -39,6 +39,7 @@ get_all_player_stats = function(
   season = NULL, 
   playoffs = FALSE, 
   per_mode = "Per36",
+  starterbench = NULL,
   player_position = NULL,
   from_date = NULL,
   to_date = NULL
@@ -65,6 +66,15 @@ get_all_player_stats = function(
     assert_that(str_detect(player_position,"((F)|(C)|(G)|(C-F)|(F-C)|(F-G)|(G-F))"))
   }
   
+  # Starter / Bench
+  if (starterbench %>% is.null()) {
+    starterbench= ""
+  } else if (starterbench == "Starter") {
+    starterbench = "Starters"
+  } else {
+    starterbench = "Bench"
+  }
+  
   # Date boundaries
   if (is.null(from_date)) {from_date = ''}
   if (is.null(to_date)) {to_date = ''}
@@ -82,7 +92,7 @@ get_all_player_stats = function(
     'PlayerPosition' = '', #((F)|(C)|(G)|(C-F)|(F-C)|(F-G)|(G-F))
     'GameScope' = '',
     'PlayerExperience' = '', # ((Rookie)|(Sophomore)|(Veteran))
-    'StarterBench' = '',
+    'StarterBench' = starterbench,
     'PlusMinus' = 'N',
     'PaceAdjust' = 'N',
     'Rank' = 'N',
@@ -123,8 +133,16 @@ get_player_career_stats = function(plyid, per_mode = "PerGame") {
   )
   
   # Submit Request
-  submit_request(endpoint, params) %>%
+  career_stats = 
+    submit_request(endpoint, params) %>%
     response_to_df(1)
+  
+  # Clean up mid season trades
+  career_stats %>%
+    group_by(season_id) %>% mutate(teams = n()) %>% ungroup() %>%
+    # Record for total for 2 team seasons
+    filter(teams == 1 | (teams > 1 & team_abbreviation == "TOT")) %>%
+    select(-teams)
   
   
 }

@@ -1,18 +1,13 @@
 # shinyUI(
-navbarPage("SMOOVE",theme=shinythemes::shinytheme("sandstone"),
+navbarPage("SMOOVE",
+           
+    theme=shinythemes::shinytheme("sandstone"),
 
     tabPanel("PLAYER.",
     
     #source("./ui/nav-bar.R", local=TRUE)$value,
   
-    # fluidRow(class = 'center-children title-bar',
-      
-    #     column(3,
-    #       h1("SMOOVE")
-    #     )
-        
-    # ),     
-    
+
     # Shiny Dashboard CSS
     tags$head(
       includeCSS(file.path('www', path = "AdminLTE.css")),

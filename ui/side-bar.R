@@ -53,7 +53,9 @@ div(class = "sidebar pad-15",
   # Overview
   div(class = "header-box",
     h4("OVERVIEW.")
-  ),
+  ), br(),
+  
+  textOutput("peergrp"), br(),
     
   DTOutput("player_stat_table")
 )

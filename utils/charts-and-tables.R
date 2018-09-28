@@ -34,7 +34,7 @@ build_career_charts = function(cr) {
 # ++++++++++++++++++++++++
 # CHART BUILDERS
 # ++++++++++++++++++++++++
-chart_stat_season = function(gamelog, stat_name, window = 5) {
+chart_stat_season = function(gamelog, stat_name, stat_median, window = 5) {
   
   # Season Name
   seaon_name = gamelog$season[1]
@@ -71,11 +71,26 @@ chart_stat_season = function(gamelog, stat_name, window = 5) {
   # Create Basic Chart
   chart = 
     highchart() %>%
-    hc_add_series(name = glue("{stat_name}"), df, "scatter", hcaes(x = game_number, y = raw)) %>%
+    hc_add_series(name = glue("{stat_name}"), df, "scatter", hcaes(x = game_number, y = raw), color = "rgba(62, 63, 58, 0.75)") %>%
     hc_add_series(name = "Rolling Avg", df, "spline", hcaes(x = game_number, y = rolling_average)) %>%
     hc_add_series(name = "Season Avg", df, "spline", visible= FALSE, hcaes(x = game_number, y = season_average)) %>%
     hc_title(text = seaon_name) %>%
-    hc_yAxis(title = list(text = stat_name)) %>%
+    hc_yAxis(
+      title = list(text = stat_name),
+      plotLines = list(
+        list(
+          value = stat_median,
+          color = "#ED074F",
+          width = 1,
+          label = list(
+            text = "peer median",
+             style = list(color = "#ED074F", fontWeight = "bold", fontSize = "12px"),
+             align = "right"
+          )
+        #, zIndex = 10
+        )
+      )
+    ) %>%
     hc_xAxis(title = list(text = "Game Number")) %>%
     hc_add_theme(hc_theme_smoove()) %>%
     hc_tooltip(shared = TRUE, crosshairs = TRUE)
@@ -108,7 +123,7 @@ chart_stat_season = function(gamelog, stat_name, window = 5) {
 }
 
 
-chart_stat_career = function(career_stats, stat_name, window = 3) {
+chart_stat_career = function(career_stats, stat_name, stat_median) {
   
   # Get field config from app config list in parent environment
   conf_item = app_config %>% pluck("basic-stats", stat_name)
@@ -133,21 +148,58 @@ chart_stat_career = function(career_stats, stat_name, window = 3) {
   # Add in game number and cumulative season average
   df = df %>% arrange(season_id)
   
-  # Formatter
+  # ++++++++++++
+  # Chart Options
+  # ++++++++++++
+  
+  # Number formatting
   if (str_detect(stat_name, "\\%")) {
-    formatter = JS("function(){ return(Math.round(this.y * 100) + '%')}")
+    axformatter = JS("function(){ return(Math.round(this.value * 100) + '%')}")
+    dlformatter = JS("function(){ return(Math.round(this.y * 100) + '%')}")
   } else {
-    formatter = JS("function(){ return(this.y) }")
+    axformatter = JS("function(){ return(this.value) }")
+    dlformatter = JS("function(){ return(this.y) }")
   }
   
+  # Axis Limits
+  y_min = pmin(
+    # Default Min
+    conf_item %>% pluck("axis", "default-min"), 
+    # Player Specific
+    (df %>% pull(season_avg) %>% min()) - conf_item %>% pluck("axis", "shift-unit")
+  )
+  y_max = pmax(
+    # Default Min
+    conf_item %>% pluck("axis", "default-max"), 
+    # Player Specific
+    (df %>% pull(season_avg) %>% max()) + conf_item %>% pluck("axis", "shift-unit")
+  )
   
-  # Create Basic Chart
+  # ++++++++++++
+  # Chart Build
+  # ++++++++++++
   chart = 
-    hchart(df, name = "Season Avg", "column", hcaes(x = season_id, y = season_avg)) %>%
+    hchart(
+      df, 
+      name = "Season Avg", 
+      "column", 
+      hcaes(x = season_id, y = season_avg)
+    ) %>%
     hc_title(text = "Career") %>%
     hc_colors("#1d89ff") %>%
-    hc_yAxis(title = list(text = stat_name)) %>%
-    hc_xAxis(title = list(text = "Season"), labels = list(formatter = formatter)) %>%
+    hc_yAxis(
+      title = list(text = stat_name), 
+      labels = list(formatter = axformatter),
+      min = y_min, max = y_max,
+      plotLines = list(list(
+        value = stat_median,
+        color = "#ED074F",
+        width = 1,
+        label = list(text = "peer median", style = list(color = "#ED074F", fontWeight = "bold", fontSize = "12px"))
+        #, zIndex = 10
+      ))
+    ) %>%
+    hc_xAxis(title = list(text = "Season")) %>%
     hc_add_theme(hc_theme_smoove()) %>%
     hc_plotOptions(
       column = list(
@@ -157,15 +209,12 @@ chart_stat_career = function(career_stats, stat_name, window = 3) {
           #verticalAlign = "top",
           #color = "#FFF",
           backgroundColor = NULL,
-          style = list(textOutline = NULL,
-                       #fontSize = "6px", 
-                       fontWeight = "bold"),
-          formatter = formatter
+          style = list(textOutline = NULL, fontWeight = "normal", backgroundColor = "#FFF"),
+          formatter = dlformatter
         )
       )
     )
-  
-  
+    
   return(chart)
   
   
@@ -179,15 +228,19 @@ build_player_table = function(
   plyid, 
   statsdf, 
   playerdf,
-  # careerstatsdf, 
+  careerstatsdf, 
+  starter_bench,
+  position,
   per36 = FALSE
 ) {
   
   # Per36 Switch
-  # if (per36) {
-  #   statsdf = allplayerstats_to_perM(statsdf)
-  #   careerstatsdf = 
-  # }
+  if (per36) {
+    statsdf = allplayerstats_to_perM(statsdf)
+  }
+
+  # Career Averages
+  career_avgs = get_career_average(careerstatsdf, per36 = per36)
 
   # Join player and stats data
   statsdf = 
@@ -199,11 +252,8 @@ build_player_table = function(
       position == "F-G" ~ "F",
       position == "F-C" ~ "F",
       TRUE ~ position
-    )) %>%
-    mutate(total_mins = gp * min) 
-  
-  # Player position
-  plyr_pos = statsdf %>% filter(player_id == plyid) %>% pull(position_map)
+    )) 
+    #%>% mutate(total_mins = gp * min) 
   
   # Stats of interest
   statcats = c(
@@ -213,49 +263,69 @@ build_player_table = function(
     "fga","fg3a", "fta", "oreb", "dreb"
   )
   
-  per_game = 
+  this_season = 
     statsdf %>% 
     filter(player_id == plyid) %>%
+    mutate(min = ifelse(per36, 36, min)) %>%
     select(one_of(statcats))
     
-  per36_multiplier = 36 / per_game$min
-    
-  per36 = 
-    per_game %>%
-    mutate_at(vars(-min, -fg_pct, -fg3_pct, -ft_pct), function(x){round(x * per36_multiplier,1)})
-  
   player_table = 
-    per_game %>%
+    this_season %>%
     mutate_at(vars(contains("pct")), scales::percent) %>%
-    gather(statistic, per_game) %>%
+    gather(statistic, this_season) %>%
     inner_join(
-      per36 %>%
+      career_avgs %>%
         mutate_at(vars(contains("pct")), scales::percent) %>%
-        mutate(min = "-") %>%
-        gather(statistic, per_36)
+        gather(statistic, career_avg)
     )
-    
+  
+  # +++++++++++++
+  # Peer Data
+  # +++++++++++++
+  
+  if (starter_bench == "Starting") {
+    peer_base = 
+      statsdf %>%
+      filter(min > 28 & gp > 5) %>%
+      filter(position_map == position) %>%
+      select(one_of(statcats))
+  } else {
+    peer_base = 
+      statsdf %>%
+      filter(min < 28 & gp > 5) %>%
+      filter(position_map == position) %>%
+      select(one_of(statcats))
+  }
+  
   # Get poisition per 36 average
-  position_per36_median = 
-    statsdf %>%
-    filter(total_mins > 250) %>%
-    filter(position_map == plyr_pos) %>%
-    select(player_id, one_of(statcats)) %>%
-    gather(variable, value, -player_id, -min) %>%
-    mutate(per_36 = case_when(
-      variable %>% str_detect("pct") ~ value,
-      TRUE ~ round(value * (36 / min),1)
-    )) %>%
-    select(-value) %>%
-    spread(variable, per_36) %>%
-    select(-player_id) %>%
+  peer_median = 
+    peer_base %>%
     summarise_all(median) %>%
     mutate_at(vars(contains("pct")), scales::percent) %>%
-    mutate(min = "-") %>%
-    gather(statistic, position_per36_median)
+    mutate(min = ifelse(per36, 36, min)) %>%
+    gather(statistic, peer_median)
   
+  # Peer percentile
+  peer_percentile = 
+    this_season %>%
+    gather(statistic, value) %>%
+    pmap_dfr(
+      .f = function(statistic, value) {
+        estimator = ecdf(peer_base %>% pull(statistic))
+        tibble(
+          statistic = statistic,
+          peer_percentile = round(estimator(value) * 100, 0)
+        )
+      }
+    )
+    
+  # +++++++++++++
+  # Assemble
+  # +++++++++++++
   player_table %>%
-    inner_join(position_per36_median) %>%
+    inner_join(peer_median, by = "statistic") %>%
+    inner_join(peer_percentile, by = "statistic") %>%
+    select(statistic, career_avg, this_season, peer_median, peer_percentile) %>%
     mutate(
       statistic = recode(statistic,
         min = "Minutes",

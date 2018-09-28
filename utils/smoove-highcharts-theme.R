@@ -1,7 +1,7 @@
 hc_theme_smoove = function() {
   
-  base_font = "Inconsolata"
-  header_font = "Inconsolata"
+  base_font = "Roboto Mono"
+  header_font = "Roboto Mono"
   
   header_style = list(fontFamily = header_font, fontWeight = "bold", color = "#000000")
   
@@ -14,7 +14,7 @@ hc_theme_smoove = function() {
         )
         # shadow = TRUE
       ),
-      colors = list("#0e1111", "#1d89ff", "#ED074F", "#FE5F55", "#C1E1F1", "#5FEF9B"),
+      colors = list("#1d89ff", "#ED074F", "#FE5F55", "#C1E1F1", "#5FEF9B"),
        # "#1D428A", 
       title = list(
         style = header_style,
@@ -29,7 +29,7 @@ hc_theme_smoove = function() {
       yAxis = list(
         lineWidth = 1, lineColor = "#011627",
         tickWidth = 0,
-        gridLineWidth = 0,
+        gridLineWidth = 0.5,
         title = list(style = header_style),
         showLastLabel = FALSE,
         showFirstLabel = FALSE

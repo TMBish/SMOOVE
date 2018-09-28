@@ -3,6 +3,7 @@ shinyServer(function(input, output, session) {
   
   # Reactive Values Store ---------------------------------------------------
   revals = reactiveValues(
+    player_id = NULL,
     gamelog_raw = NULL,
     gamelog_out = NULL,
     career_raw = NULL,
@@ -17,15 +18,54 @@ shinyServer(function(input, output, session) {
     
     # Player ID
     id_ = player_master %>% filter(player == input$player_name) %>% pull(player_id)
-    
-    # Get Overview Player Table
-    revals$player_stat_table = build_player_table(id_, stats_master, player_master)
+    revals$player_id = id_
     
     # Update Season Gamelog
-    revals$gamelog_raw = get_player_gamelog(id_, season = "2017-18")
+    glraw = get_player_gamelog(id_, season = "2017-18")
+    revals$gamelog_raw = glraw
     
     # Update Career Stats
     revals$career_raw = get_player_career_stats(id_)
+    
+    # Peer group
+    revals$starter_bench = ifelse(glraw %>% pull(min) %>% mean() > 28, "Starting", "Bench")
+    revals$position = 
+      player_master %>%
+      filter(player_id == id_) %>%
+      mutate(position_map = case_when(
+        position == "C-F" ~ "C",
+        position == "G-F" ~ "G",
+        position == "F-G" ~ "F",
+        position == "F-C" ~ "F",
+        TRUE ~ position
+      )) %>%
+      pull(position_map)
+      
+    
+  })
+
+  # Build table observer
+  observe({
+    
+    req(revals$career_raw)
+    req(revals$player_id)
+    req(revals$position)
+    req(revals$starter_bench)
+    
+    player_overview_table = build_player_table(
+      revals$player_id, 
+      stats_master, 
+      player_master, 
+      revals$career_raw,
+      starter_bench = revals$starter_bench,
+      position = revals$position,
+      per36 = input$per_36_enable
+    )
+    
+    
+    revals$player_stat_table = player_overview_table
+    
+    
     
   })
 
@@ -44,21 +84,22 @@ shinyServer(function(input, output, session) {
       revals$gamelog_out = revals$gamelog_raw
       revals$career_out = revals$career_raw
     }
-
+    
   })
-
   
-  # Chart build observer
-  observe({
+  # Peer group
+  output$peergrp = renderText({
+    req(revals$position)
+    req(revals$bench_starter)
     
-    if (!is.null(revals$gamelog_out)) {
-      revals$season_charts = build_season_charts(revals$gamelog_out)
-    }
+    pos_ = case_when(
+      revals$position == "F" ~ "Forwards",
+      revals$position == "G" ~ "Guards",
+      TRUE ~ "Centers"
+    )
     
-    if (!is.null(revals$career_out)) {
-      revals$career_charts = build_career_charts(revals$career_out)
-    }
-    
+    glue("Peer Group: {tolower(revals$bench_starter)} {pos_}}") %>%
+    return()
   })
   
   # Player Stat Overview Table
@@ -71,7 +112,7 @@ shinyServer(function(input, output, session) {
     
     datatable(
       dtab %>% select(-statistic)
-      , colnames = c( 'Per Game', "Per 36 Mins", "Pos. Per36 Median")
+      , colnames = c( 'Career Avg', "2017-18", "Peer Median", "Peer %tile")
       #, rownames = FALSE
       , selection = "none"
       , class = 'compact hover row-border'
@@ -89,22 +130,47 @@ shinyServer(function(input, output, session) {
   # Core Stats
   output$core_season = renderHighchart({
     
-    chart_type = input$core_stat_type
-    revals$season_charts[[chart_type]]
+    req(revals$gamelog_out)
+    
+    # Stat name
+    core_stat_name = input$core_stat_type
+    
+    # Get peer median?
+    stat_median = get_peer_median(stats_master, core_stat_name)
+    
+    # Build chart
+    chart_stat_season(revals$gamelog_out, stat_name = core_stat_name, stat_median = stat_median)
     
   })
 
   output$core_career = renderHighchart({
     
-    chart_type = input$core_stat_type
-    revals$career_charts[[chart_type]]
+    req(revals$career_out)
+    
+    # Stat name
+    core_stat_name = input$core_stat_type
+    
+    # Get peer median?
+    stat_median = get_peer_median(stats_master, core_stat_name)
+    
+    # Build chart
+    chart_stat_career(revals$career_out, stat_name = core_stat_name, stat_median = stat_median)
     
   })
 
   output$core_career1 = renderHighchart({
     
-    chart_type = input$core_stat_type
-    revals$career_charts[[chart_type]]
+    req(revals$career_out)
+    
+    # Stat name
+    core_stat_name = input$core_stat_type
+    
+    # Get peer median?
+    stat_median = get_peer_median(stats_master, core_stat_name)
+    
+    # Build chart
+    highcharts_demo() %>% hc_add_theme(hc_theme_smoove())
+    #chart_stat_career(revals$career_out, stat_name = core_stat_name, stat_median = stat_median)
     
   })
   
@@ -112,22 +178,46 @@ shinyServer(function(input, output, session) {
   # Efficiency
   output$efficiency_season = renderHighchart({
     
-    chart_type = input$efficiency_stat_type
-    revals$season_charts[[chart_type]]
+    req(revals$gamelog_out)
+    
+    # Stat name
+    eff_stat_name = input$efficiency_stat_type
+    
+    # Get peer median?
+    stat_median = get_peer_median(stats_master, eff_stat_name)
+    
+    # Build chart
+    chart_stat_season(revals$gamelog_out, stat_name = eff_stat_name, stat_median = stat_median)
     
   })
   
   output$efficiency_career = renderHighchart({
     
-    chart_type = input$efficiency_stat_type
-    revals$career_charts[[chart_type]]
+    req(revals$career_out)
+    
+    # Stat name
+    eff_stat_name = input$efficiency_stat_type
+    
+    # Get peer median?
+    stat_median = get_peer_median(stats_master, eff_stat_name)
+    
+    # Build chart
+    chart_stat_career(revals$career_out, stat_name = eff_stat_name, stat_median = stat_median)
     
   })
   
     output$efficiency_career1 = renderHighchart({
     
-    chart_type = input$efficiency_stat_type
-    revals$career_charts[[chart_type]]
+    req(revals$career_out)
+    
+    # Stat name
+    eff_stat_name = input$efficiency_stat_type
+    
+    # Get peer median?
+    stat_median = get_peer_median(stats_master, eff_stat_name)
+    
+    # Build chart
+    chart_stat_career(revals$career_out, stat_name = eff_stat_name, stat_median = stat_median)
     
   })
   

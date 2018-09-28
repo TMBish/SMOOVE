@@ -1,7 +1,8 @@
-/* Global Options */
+/* ++++++++++++++ */
+/* GLOBAL OPTIONS */
+/* ++++++++++++++ */
 
 @import url('https://fonts.googleapis.com/css?family=Bitter|Permanent+Marker');
-
 @import url('https://fonts.googleapis.com/css?family=Roboto+Mono');
 
 body {
@@ -17,12 +18,10 @@ body {
   color: white;
 }
 
-
 /* App Body*/
 .main-page {
   padding: 1%;
 }
-
 
 /* Centering */
 
@@ -31,9 +30,8 @@ body {
 }
 
 /* Headers */
-
 .header-box {
-  border-bottom: 2px solid #232b2b;
+  border-bottom: 2px solid #3e3f3a;
   margin-bottom: 5px;
 }
 
@@ -44,17 +42,15 @@ h1 {
 }
 
 h4 {
-  margin-top: 0px;
+  margin-top: 0;
 }
 
-
 /* Sidebar*/
-
 .sidebar {
   background: #FFF;
   color: #000000;
   width: 100%;
-  border: 0.5px solid #232b2b;
+  border: 0.5px solid #3e3f3a;
   border-right-width: 3px;
   border-bottom-width: 3px;
   min-height: 600px;
@@ -64,19 +60,22 @@ h4 {
   padding: 15px;
 }
 
+/* +++++++++++++ */
+/* PLAYER SEARCH */
+/* +++++++++++++ */
+
 #player_name {
-/*  border: 0px;
-*/  color: #232b2b;
+  color: #232b2b;
   font-size: 14px;
   text-align: center;
 }
 
-#player_search {
-  margin-top: 21px;
+#player_name:focus{
+  border: 1px solid #1d89ff;
 }
 
-#player_search:focus {
-    outline: none;
+#player_search {
+  margin-top: 21px;
 }
 
 #player_stat_table {
@@ -87,10 +86,8 @@ h4 {
 /* Body */
 
 .box {
-  border: 0px;
+  border: 0;
 }
-
-
 
 /* Various Utilities */
 
@@ -111,12 +108,4 @@ h4 {
 .sidebar > hr {
   margin-left: 0px;
   margin-right: 0px;
-}
-
-.right-bar > img {
-  width: 100%;
-}
-
-.right-bar div.well {
-  height: 1000px;
 }

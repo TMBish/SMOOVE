@@ -106,7 +106,7 @@ df = response_to_df(response, 1)
 # All the api functions --------------------------------------------------------------
 
 # Get player
-plyrid = get_player("Jimmy", "Butler")
+plyrid = get_player("LeBron", "James")
 
 # Get player gamelog
 gl = get_player_gamelog(plyrid, season = "2017-18")
@@ -118,4 +118,8 @@ player_stats = get_all_player_stats(season = "2017-18")
 career_stats = get_player_career_stats(plyrid)
 
 player_master = build_player_data()
+
+
+
+build_player_table(plyrid, player_stats, player_master, career_stats, TRUE)
 
