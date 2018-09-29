@@ -2,36 +2,13 @@
 # WRAPPERS
 # ++++++++++++++++++++++++
 
-build_season_charts = function(gl) {
-  
-  # Iterators
-  stat_set = app_config$`basic-stats` %>% names()
-  stat_set = stat_set[stat_set!="Minutes"]
-
-  # Build
-  stat_set %>%
-    map(chart_stat_season, gamelog = gl) %>%
-    setNames(stat_set) %>%
-    return()
-  
-}
-
-
-build_career_charts = function(cr) {
-  
-  # Iterators
-  stat_set = app_config$`basic-stats` %>% names()
-  stat_set = stat_set[stat_set!="Minutes"]
-  
-  # Build
-  stat_set %>%
-    map(chart_stat_career, career_stats = cr) %>%
-    setNames(stat_set) %>%
-    return()
-  
-}
-
 build_season_chart = function(game_log, team_log, stat_name, per_mode) {
+  
+  # Examples
+  plyrid = get_player("Justise", "Winslow")
+  game_log = get_player_gamelog(plyrid, season = "2017-18")
+  stat_name = "Field Goal %"
+  team_log = get_team_games(player_master %>% filter(player_id == plyrid) %>% pull(teamid))
   
   # Get config
   config = assemble_intra_season_config(game_log, app_config, stat_name) 
@@ -55,21 +32,42 @@ make_season_chart = function(chart_input, config, per_mode) {
   # Chart Options
   # ++++++++++++
   
-  stat_label = config %>% pluck("stat_config", "label")
-  volume_required = !(config %>% pluck("stat_config", "volume") %>% is.null())
+  # English name of the stat for labels
+  stat_label = 
+    config %>% 
+    pluck("stat-config", "label")
+    
+  # Is it a volume based stat to plot the volume bars
+  volume_required = 
+    !(
+      config %>% 
+      pluck("stat-config", "volume") %>% 
+      is.null()
+    )
   
   # Number formatting
   if (str_detect(stat_label, "\\%")) {
-    per_mode = ""
+    # A % based stat (per game / per 36 doesn't make sense)
+    raw_series_name = stat_name
+    y_axis_name = stat_name
+  } else if (per_mode == "Per 36") {
+    # Per 36 & Not a % based stat
+    raw_series_name = glue("{stat_name} {per_mode}")
+    y_axis_name = glue("{stat_name} {per_mode}")
+  } else {
+    # Per Game & Not a % based stat
+    raw_series_name = stat_name
+    y_axis_name = glue("{stat_name} {per_mode}")
   }
   
   # ++++++++++++
   # Chart Build
   # ++++++++++++
+  
   chart = 
     highchart() %>%
     hc_add_series(
-      name = glue("{stat_name} {ifelse(per_mode=='Per 36', per_mode, '')}"),
+      name = raw_series_name,
       chart_input,
       "scatter",
       hcaes(x = game_number, y = raw), 
@@ -82,7 +80,7 @@ make_season_chart = function(chart_input, config, per_mode) {
       title = list(text = glue("{stat_label} {per_mode}")),
       plotLines = list(
         list(
-          value = stat_median,
+          value = 0.45,
           color = "#ED074F",
           width = 1,
           label = list(
@@ -101,16 +99,18 @@ make_season_chart = function(chart_input, config, per_mode) {
   # Add in volume bar chart if required
   if (volume_required) {
     
-    vol_stat_label = config %>% pluck("stat_config", "volume", "stat-label")
+    vol_stat_label = 
+      config %>% 
+      pluck("stat-config", "volume", "stat-label")
     
     chart = chart %>%
       hc_yAxis_multiples(
-        list(labels = list(formatter = JS("function(){return(this.value*100 + '%')}")), title = list(text = stat_name)),
+        list(labels = list(formatter = JS("function(){return(this.value*100 + '%')}")), title = list(text = raw_series_name)),
         list(title = list(text = vol_stat_label), opposite = TRUE)
       ) %>%
       hc_add_series(
         name = vol_stat_label,
-        df,
+        chart_input,
         "column",
         hcaes(x = game_number, y = volume),
         yAxis = 1,
@@ -120,37 +120,34 @@ make_season_chart = function(chart_input, config, per_mode) {
     
   }
   
-  
-  
-  
 }
 
 # ++++++++++++++++++++++++
 # CHART DATA BUILDERS
 # ++++++++++++++++++++++++
 
-assemble_intra_season_config = function(gamelog, app_config, stat_name) {
+assemble_intra_season_config = function(game_log, app_config, stat_name) {
   
   output = list()
   
-  output$season_name = gamelog$season[1]  
-  output$stat_config = app_config %>% pluck("basic-stats", stat_name)
-  output$stat_config$label = stat_name
+  output$season_name = game_log$season[1]  
+  output$`stat-config` = app_config %>% pluck("basic-stats", stat_name)
+  output$`stat-config`$label = stat_name
   
   return(output)
   
 }
 
-assemble_intra_season_data = function(gamelog, teamlog, config) {
+assemble_intra_season_data = function(game_log, team_log, config) {
   
   # Get info from the config list
-  col = config %>% pluck("stat_config", "col")
-  vol_switch = config %>% pluck("stat_config", "volume") %>% is.null()
+  col = config %>% pluck("stat-config", "col")
+  vol_switch = config %>% pluck("stat-config", "volume") %>% is.null()
   
   # Join player gamelog and teamlog
   d_f = 
-    teamlog %>%
-    left_join(gamelog, by = "game_id") %>%
+    team_log %>%
+    left_join(game_log, by = "game_id") %>%
     arrange(game_id) %>%
     mutate(game_number = row_number())
     
@@ -198,25 +195,22 @@ assemble_intra_season_data = function(gamelog, teamlog, config) {
   d_f %>%
   mutate(
     rolling_average = case_when(
-      rolling_average== 0 | is.nan(rolling_average) | is.na(raw) ~ NA_real_,
+      rolling_average== 0 | is.nan(rolling_average) | is.na(raw) | (rollsum(!is.na(raw),k = 5, fill = NA, align = 'right') <= 2) ~ NA_real_,
       TRUE ~ rolling_average
     )
   )
   
 }
 
-# ++++++++++++++++++++++++
-# CHART BUILDERS
-# ++++++++++++++++++++++++
-
-
-
-
 assemble_inter_season_data = function() {
   
   
   
 }
+# ++++++++++++++++++++++++
+# CHART BUILDERS
+# ++++++++++++++++++++++++
+
 
 chart_stat_season = function(gamelog, stat_name, stat_median, per_mode, window = 5) {
   
@@ -515,25 +509,7 @@ build_player_table = function(
     inner_join(peer_median, by = "statistic") %>%
     inner_join(peer_percentile, by = "statistic") %>%
     select(statistic, career_avg, this_season, peer_median, peer_percentile) %>%
-    mutate(
-      statistic = recode(statistic,
-        min = "Minutes",
-        pts = "Points",
-        reb = "Rebounds",
-        ast = "Assists",
-        fg_pct = "FG %",
-        fg3_pct = "3PT %",
-        ft_pct = "FT %",
-        stl = "Steals",
-        blk = "Blocks",
-        tov = "Turnovers",
-        fga = "FGA",
-        fg3a = "3PA",
-        fta = "FTA",
-        oreb = "Off Rebounds",
-        dreb = "Def Rebounds"
-      )
-    ) %>%
+    mutate(statistic = data_stat_translation(statistic)) %>%
     return()
   
 }
