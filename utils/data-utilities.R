@@ -1,3 +1,15 @@
+position_mapper <- function(position_vec) { 
+
+  case_when(
+        position_vec == "C-F" ~ "C",
+        position_vec == "G-F" ~ "G",
+        position_vec == "F-G" ~ "F",
+        position_vec == "F-C" ~ "F",
+        TRUE ~ position_vec
+  )
+
+}
+
 gamelog_to_perM <- function(gl, M = 36) {
   
   # Turn a gamelog dataset into per36 numbers

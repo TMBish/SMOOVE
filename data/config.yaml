@@ -13,8 +13,10 @@ basic-stats:
       default-min: .4
       default-max: .55
       shift-unit: 0.02
-    volume-stat: fga
-    volume-stat-label: Field Goal Attempts
+    volume:
+      attempts: fga
+      makes: fgm
+      stat-label: Field Goal Attempts
   Three Point %:
     type: efficiency
     col: fg3_pct
@@ -22,8 +24,10 @@ basic-stats:
       default-min: .3
       default-max: .45
       shift-unit: 0.02
-    volume-stat: fg3a
-    volume-stat-label: Three Point Attempts
+    volume:
+      attempts: fg3a
+      makes: fg3m
+      stat-label: Three Point Attempts
   Three Point Makes:
     type: core
     col: fg3m
@@ -38,8 +42,10 @@ basic-stats:
       default-min: .5
       default-max: .9
       shift-unit: 0.05
-    volume-stat: fta
-    volume-stat-label: Free Throw Attempts
+    volume:
+      attempts: fta
+      makes: ftm
+      stat-label: Free Throw Attempts
   Rebounds:
     type: core
     col: reb

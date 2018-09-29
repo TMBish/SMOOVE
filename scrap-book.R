@@ -109,7 +109,7 @@ df = response_to_df(response, 1)
 plyrid = get_player("LeBron", "James")
 
 # Get player gamelog
-gl = get_player_gamelog(plyrid, season = "2017-18")
+gamelog = get_player_gamelog(plyrid, season = "2017-18")
 
 # Get all player stats - season averages for all players
 player_stats = get_all_player_stats(season = "2017-18")

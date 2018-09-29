@@ -60,6 +60,31 @@ get_team_roster <- function(team_id) {
   
 }
 
+get_team_games <- function(team_id, season = NULL) {
+  
+  # Params
+  endpoint = 'teamgamelog'
+  
+  # Season
+  if (is.null(season)) {
+    season = get_current_season()
+  }
+  
+  # Assemble Params
+  params = list(
+    'Season' = season,
+    'TeamID' = team_id,
+    'SeasonType' = "Regular Season"
+  )
+  
+  # Execute
+  submit_request(endpoint, params) %>%
+    response_to_df(1) %>%
+    select(team_id, game_id, game_date) %>%
+    return()
+  
+}
+
 
 get_all_players <- function(season = NULL, only_current_plyrs = 1) {
   

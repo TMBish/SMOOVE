@@ -31,10 +31,194 @@ build_career_charts = function(cr) {
   
 }
 
+build_season_chart = function(game_log, team_log, stat_name, per_mode) {
+  
+  # Get config
+  config = assemble_intra_season_config(game_log, app_config, stat_name) 
+  
+  # Assemble chart data
+  d_f = assemble_intra_season_data(game_log, team_log, config)
+  
+  # Get median
+  
+  # Produce Chart
+  chart = make_season_chart(d_f, config, per_mode)
+}
+
 # ++++++++++++++++++++++++
 # CHART BUILDERS
 # ++++++++++++++++++++++++
-chart_stat_season = function(gamelog, stat_name, stat_median, window = 5) {
+
+make_season_chart = function(chart_input, config, per_mode) {
+
+  # ++++++++++++
+  # Chart Options
+  # ++++++++++++
+  
+  stat_label = config %>% pluck("stat_config", "label")
+  volume_required = !(config %>% pluck("stat_config", "volume") %>% is.null())
+  
+  # Number formatting
+  if (str_detect(stat_label, "\\%")) {
+    per_mode = ""
+  }
+  
+  # ++++++++++++
+  # Chart Build
+  # ++++++++++++
+  chart = 
+    highchart() %>%
+    hc_add_series(
+      name = glue("{stat_name} {ifelse(per_mode=='Per 36', per_mode, '')}"),
+      chart_input,
+      "scatter",
+      hcaes(x = game_number, y = raw), 
+      color = "rgba(62, 63, 58, 0.75)"
+    ) %>%
+    hc_add_series(name = "Rolling Avg", chart_input, "spline", hcaes(x = game_number, y = rolling_average)) %>%
+    hc_add_series(name = "Season Avg", chart_input, "spline", visible= FALSE, hcaes(x = game_number, y = season_average)) %>%
+    hc_title(text = config %>% pluck("season_name")) %>%
+    hc_yAxis(
+      title = list(text = glue("{stat_label} {per_mode}")),
+      plotLines = list(
+        list(
+          value = stat_median,
+          color = "#ED074F",
+          width = 1,
+          label = list(
+            text = "peer median",
+             style = list(color = "#ED074F", fontWeight = "bold", fontSize = "12px"),
+             align = "right"
+          )
+        #, zIndex = 10
+        )
+      )
+    ) %>%
+    hc_xAxis(title = list(text = "Game Number")) %>%
+    hc_add_theme(hc_theme_smoove()) %>%
+    hc_tooltip(shared = TRUE, crosshairs = TRUE)
+  
+  # Add in volume bar chart if required
+  if (volume_required) {
+    
+    vol_stat_label = config %>% pluck("stat_config", "volume", "stat-label")
+    
+    chart = chart %>%
+      hc_yAxis_multiples(
+        list(labels = list(formatter = JS("function(){return(this.value*100 + '%')}")), title = list(text = stat_name)),
+        list(title = list(text = vol_stat_label), opposite = TRUE)
+      ) %>%
+      hc_add_series(
+        name = vol_stat_label,
+        df,
+        "column",
+        hcaes(x = game_number, y = volume),
+        yAxis = 1,
+        zIndex = -10,
+        color = "#E0E0E0"
+      )
+    
+  }
+  
+  
+  
+  
+}
+
+# ++++++++++++++++++++++++
+# CHART DATA BUILDERS
+# ++++++++++++++++++++++++
+
+assemble_intra_season_config = function(gamelog, app_config, stat_name) {
+  
+  output = list()
+  
+  output$season_name = gamelog$season[1]  
+  output$stat_config = app_config %>% pluck("basic-stats", stat_name)
+  output$stat_config$label = stat_name
+  
+  return(output)
+  
+}
+
+assemble_intra_season_data = function(gamelog, teamlog, config) {
+  
+  # Get info from the config list
+  col = config %>% pluck("stat_config", "col")
+  vol_switch = config %>% pluck("stat_config", "volume") %>% is.null()
+  
+  # Join player gamelog and teamlog
+  d_f = 
+    teamlog %>%
+    left_join(gamelog, by = "game_id") %>%
+    arrange(game_id) %>%
+    mutate(game_number = row_number())
+    
+  # Based on boolean select the stat col and maybe volume col
+  if (vol_switch) {
+    
+    # No volume base info needed
+    d_f =  
+      d_f %>% 
+      select(game_number, raw = !!col) %>%
+      mutate_at(vars(raw), as.numeric) %>%
+      mutate(
+        rolling_average = 
+          rollsum(coalesce(raw, 0), k = 5, fill = NA, align = 'right') / 
+          rollsum(!is.na(raw), k = 5, fill = NA, align = 'right'),
+        season_average = cumsum(coalesce(raw, 0)) / cumsum(!is.na(raw))
+      ) %>%
+      select(game_number, raw, rolling_average, season_average)
+      
+  } else {
+    
+    # Need to include volume and stuff
+    vol_attempts = config %>% pluck("stat-config", "volume", "attempts") 
+    vol_makes = config %>% pluck("stat-config", "volume", "makes")
+    
+    d_f =  
+      d_f %>% 
+      select(game_number, 
+        raw = !!col, attempts = !!vol_attempts, makes = !!vol_makes
+      ) %>%
+      mutate_at(vars(raw, makes, attempts), as.numeric) %>%
+      mutate(
+        cum_makes = cumsum(coalesce(makes, 0)),
+        cum_attempts = cumsum(coalesce(attempts, 0))
+      ) %>%
+      mutate(
+        season_average = cum_makes / cum_attempts,
+        rolling_average = 
+          rollsum(coalesce(makes, 0), k = 5, fill = NA, align = 'right') / 
+          rollsum(coalesce(attempts, 0), k = 5, fill = NA, align = 'right')
+      ) %>%
+      select(game_number, raw, rolling_average, season_average, "volume" = attempts)
+  }
+  
+  d_f %>%
+  mutate(
+    rolling_average = case_when(
+      rolling_average== 0 | is.nan(rolling_average) | is.na(raw) ~ NA_real_,
+      TRUE ~ rolling_average
+    )
+  )
+  
+}
+
+# ++++++++++++++++++++++++
+# CHART BUILDERS
+# ++++++++++++++++++++++++
+
+
+
+
+assemble_inter_season_data = function() {
+  
+  
+  
+}
+
+chart_stat_season = function(gamelog, stat_name, stat_median, per_mode, window = 5) {
   
   # Season Name
   seaon_name = gamelog$season[1]
@@ -67,16 +251,27 @@ chart_stat_season = function(gamelog, stat_name, stat_median, window = 5) {
 
   # Add right aligned moving average based on window criteria
   df$rolling_average = rollmean(df$raw, k = window, fill = NA, align = 'right')
-    
-  # Create Basic Chart
+  
+  # ++++++++++++
+  # Chart Options
+  # ++++++++++++
+  
+  # Number formatting
+  if (str_detect(stat_name, "\\%")) {
+    per_mode = ""
+  }
+  
+  # ++++++++++++
+  # Chart Build
+  # ++++++++++++
   chart = 
     highchart() %>%
-    hc_add_series(name = glue("{stat_name}"), df, "scatter", hcaes(x = game_number, y = raw), color = "rgba(62, 63, 58, 0.75)") %>%
+    hc_add_series(name = glue("{stat_name} {ifelse(per_mode=='Per 36', per_mode, '')}"), df, "scatter", hcaes(x = game_number, y = raw), color = "rgba(62, 63, 58, 0.75)") %>%
     hc_add_series(name = "Rolling Avg", df, "spline", hcaes(x = game_number, y = rolling_average)) %>%
     hc_add_series(name = "Season Avg", df, "spline", visible= FALSE, hcaes(x = game_number, y = season_average)) %>%
     hc_title(text = seaon_name) %>%
     hc_yAxis(
-      title = list(text = stat_name),
+      title = list(text = glue("{stat_name} {per_mode}")),
       plotLines = list(
         list(
           value = stat_median,
@@ -123,7 +318,7 @@ chart_stat_season = function(gamelog, stat_name, stat_median, window = 5) {
 }
 
 
-chart_stat_career = function(career_stats, stat_name, stat_median) {
+chart_stat_career = function(career_stats, stat_name, per_mode, stat_median) {
   
   # Get field config from app config list in parent environment
   conf_item = app_config %>% pluck("basic-stats", stat_name)
@@ -156,6 +351,7 @@ chart_stat_career = function(career_stats, stat_name, stat_median) {
   if (str_detect(stat_name, "\\%")) {
     axformatter = JS("function(){ return(Math.round(this.value * 100) + '%')}")
     dlformatter = JS("function(){ return(Math.round(this.y * 100) + '%')}")
+    per_mode = ""
   } else {
     axformatter = JS("function(){ return(this.value) }")
     dlformatter = JS("function(){ return(this.y) }")
@@ -188,7 +384,7 @@ chart_stat_career = function(career_stats, stat_name, stat_median) {
     hc_title(text = "Career") %>%
     hc_colors("#1d89ff") %>%
     hc_yAxis(
-      title = list(text = stat_name), 
+      title = list(text = glue("{stat_name} {per_mode}")), 
       labels = list(formatter = axformatter),
       min = y_min, max = y_max,
       plotLines = list(list(
@@ -246,14 +442,7 @@ build_player_table = function(
   statsdf = 
     statsdf %>%
     inner_join(playerdf %>% select(player_id, position)) %>%
-    mutate(position_map = case_when(
-      position == "C-F" ~ "C",
-      position == "G-F" ~ "G",
-      position == "F-G" ~ "F",
-      position == "F-C" ~ "F",
-      TRUE ~ position
-    )) 
-    #%>% mutate(total_mins = gp * min) 
+    mutate(position_map = position_mapper(position)) 
   
   # Stats of interest
   statcats = c(
