@@ -5,7 +5,6 @@ shinyServer(function(input, output, session) {
   revals = reactiveValues(
     player_id = NULL,
     team_log = NULL,
-    gamelog_team = NULL,
     gamelog_raw = NULL,
     gamelog_out = NULL,
     career_raw = NULL,
@@ -26,19 +25,18 @@ shinyServer(function(input, output, session) {
     revals$player_id = id_
     
     # Update Season Gamelog - for team player play's on
-    revals$gamelog_team = get_team_games(player_record %>% pull(teamid))
+    # revals$gamelog_team = get_team_games(player_record %>% pull(teamid))
     
     # Update Season Gamelog - for chosen player
     glraw = get_player_gamelog(id_, season = "2017-18")
     revals$gamelog_raw = glraw
     
     # Update Career Stats
-    revals$career_raw = get_player_career_stats(id_)
-    
+    career_raw = get_player_career_stats(id_)
+    revals$career_raw = career_raw
+
     # Update team games log
-    revals$team_log = get_team_games(
-      player_master %>% filter(player_id == id_) %>% pull(teamid)
-    )
+    revals$team_log = build_team_log(career_raw)
     
     # Peer group
     revals$starter_bench = ifelse(glraw %>% pull(min) %>% mean() > 28, "Starting", "Bench")
@@ -82,13 +80,14 @@ shinyServer(function(input, output, session) {
     req(revals$gamelog_raw)
     req(revals$career_raw)
 
-    # Convert
+    # Convert stats to per_mode 
+    # Also dedupe the career data for midseason trades
     if (input$per_36_enable) {
       revals$gamelog_out = gamelog_to_perM(revals$gamelog_raw)
-      revals$career_out = career_to_perM(revals$career_raw)
+      revals$career_out = revals$career_raw %>% dedupe_player_career_stats() %>% career_to_perM()
     } else {
       revals$gamelog_out = revals$gamelog_raw
-      revals$career_out = revals$career_raw
+      revals$career_out = revals$career_raw %>% dedupe_player_career_stats()
     }
     
   })

@@ -1,15 +1,3 @@
-position_mapper <- function(position_vec) { 
-
-  case_when(
-        position_vec == "C-F" ~ "C",
-        position_vec == "G-F" ~ "G",
-        position_vec == "F-G" ~ "F",
-        position_vec == "F-C" ~ "F",
-        TRUE ~ position_vec
-  )
-
-}
-
 gamelog_to_perM <- function(gl, M = 36) {
   
   # Turn a gamelog dataset into per36 numbers
@@ -94,6 +82,7 @@ get_career_average = function(career_stats, per36 = FALSE) {
         .funs = funs(round(. / gp, 1))
       ) %>%
       select(-gp)
+
   } else {
     # Here's the per 36 calculation
     career_stats %>%

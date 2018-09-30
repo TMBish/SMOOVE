@@ -25,3 +25,15 @@ data_stat_translation = function(stat_name) {
   )
   
 }
+
+position_mapper <- function(position_vec) { 
+
+  case_when(
+        position_vec == "C-F" ~ "C",
+        position_vec == "G-F" ~ "G",
+        position_vec == "F-G" ~ "F",
+        position_vec == "F-C" ~ "F",
+        TRUE ~ position_vec
+  )
+
+}

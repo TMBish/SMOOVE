@@ -133,16 +133,18 @@ get_player_career_stats = function(plyid, per_mode = "PerGame") {
   )
   
   # Submit Request
-  career_stats = 
-    submit_request(endpoint, params) %>%
+  submit_request(endpoint, params) %>%
     response_to_df(1)
   
+}
+
+dedupe_player_career_stats = function(career_log) {
+
   # Clean up mid season trades
-  career_stats %>%
+  career_log %>%
     group_by(season_id) %>% mutate(teams = n()) %>% ungroup() %>%
     # Record for total for 2 team seasons
     filter(teams == 1 | (teams > 1 & team_abbreviation == "TOT")) %>%
     select(-teams)
-  
-  
+
 }

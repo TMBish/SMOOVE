@@ -21,6 +21,30 @@ build_player_data <- function() {
   
 }
 
+build_team_log <- function(career_stats, season = "2017-18") {
+
+  # Get career record of this season
+  season_record = 
+    career_stats %>% 
+    filter(season_id == season)
+
+  # Teams
+  teams = season_record %>% filter(team_abbreviation != "TOT") %>% pull(team_id)
+
+  # Pull gamelogs
+  plan(multiprocess)
+  logs = 
+    teams %>%
+    future_map_dfr(function(x) {
+      get_team_games(x) %>%
+      arrange(game_id) %>%
+      mutate(game_number = row_number())
+    })
+
+  return(logs)
+
+}
+
 
 # ++++++++++++++++++++++++
 # Builders

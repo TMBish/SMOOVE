@@ -100,7 +100,7 @@ make_season_chart = function(chart_input, config, peer_median, per_mode) {
     hc_add_series(name = "Season Avg", chart_input, "spline", visible= FALSE, hcaes(x = game_number, y = season_average)) %>%
     hc_title(text = config %>% pluck("season_name")) %>%
     hc_yAxis(
-      title = list(text = glue("{stat_label} {per_mode}")),
+      title = list(text = glue("{stat_label}")),
       plotLines = list(
         list(
           value = peer_median,
@@ -275,9 +275,9 @@ assemble_intra_season_data = function(game_log, team_log, config) {
   # Join player gamelog and teamlog
   d_f = 
     team_log %>%
-    left_join(game_log, by = "game_id") %>%
-    arrange(game_id) %>%
-    mutate(game_number = row_number())
+    left_join(game_log, by = "game_id") 
+    # %>% arrange(game_id) %>%
+    # mutate(game_number = row_number())
     
   # Based on boolean select the stat col and maybe volume col
   if (vol_switch) {

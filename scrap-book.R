@@ -31,52 +31,25 @@ sapply(list.files("./utils/", pattern = "*.R$", full.names = TRUE),source)
 app_config = yaml.load_file("./data/config.yaml")
 
 
-# Start some work --------------------------------------------------------------
-
+# All the api functions --------------------------------------------------------------
 
 # Get player
-plyrid = get_player("Jimmy", "Butler")
+plyrid = get_player("Blake", "Griffin")
 
 # Get player gamelog
-gl = get_player_gamelog(plyrid, season = "2017-18")
+gamelog = get_player_gamelog(plyrid, season = "2017-18")
 
-# Get all player stats
+# Get all player stats - season averages for all players
 player_stats = get_all_player_stats(season = "2017-18")
 
+# Career stasts - players career stasts
+career_stats = get_player_career_stats(plyrid)
 
-# Get team list
-teams = 
-	submit_request("commonTeamYears", list('LeagueID' = '00')) %>%
-	reponse_to_df(1) %>%
-	filter(max_year==2018)
+player_master = build_player_data()
 
-
-# Get rosters and positions
-plan(multiprocess)
-rosters = 
-	teams %>%
-	pull(team_id) %>%
-	future_map(get_team_roster) %>%
-  map(mutate_at, vars(num), as.character) %>%
-	bind_rows() %>%
-  select(-leagueid, -player, -birth_date)
+build_player_table(plyrid, player_stats, player_master, career_stats, TRUE)
 
 
-# Join player stats and roster data
-player_stats %>%
-  inner_join(rosters, by = "player_id") %>%
-  group_by(position) %>%
-  summarise(n = n(), x = mean(pts))
-
-
-# Get player career
-bron_stats = get_player_career_stats(2544)
-
-# Career Charts - One Example
-chart_stat_career(bron_stats, "Three Point %")
-
-# Career Charts - One Example
-build_career_charts(bron_stats)
 
 
 
@@ -103,23 +76,43 @@ df = response_to_df(response, 1)
 
 
 
-# All the api functions --------------------------------------------------------------
+# Playing around with the distribution function --------------------------------------------------------------
 
-# Get player
-plyrid = get_player("LeBron", "James")
+jitter = function(x) {
+  
+  rand_sign = sample(c(1,-1), size = length(x), replace = TRUE)
+  
+  rescaled_x = abs((x-mean(x)) / sd(x))
+  rescaled_x = round(rescaled_x * 2)
+  rescaled_x = case_when(
+    rescaled_x < 0.2 ~ 0.2,
+    TRUE ~ rescaled_x
+  )
+  
+  
+  rescaled_x %>%
+    map_dbl(~runif(1, min = -1/., max = 1/.))
+    
+}
 
-# Get player gamelog
-gamelog = get_player_gamelog(plyrid, season = "2017-18")
 
-# Get all player stats - season averages for all players
-player_stats = get_all_player_stats(season = "2017-18")
+stats_master %>% 
+  filter(min > 20) %>%
+  select(player_name, "value" = pts) %>%
+  mutate(
+    y_jitter = jitter(value)
+  ) %>%
+  hchart("scatter", hcaes(x = value, y = y_jitter))
+  
+  pull(pts) %>% 
+  hchart() %>% 
+  hc_add_theme(hc_theme_smoove()) %>%
+  hc_plotOptions(
+    column = list(borderColor = "#000", borderWidth = 4)
+  )
 
-# Career stasts - players career stasts
-career_stats = get_player_career_stats(plyrid)
-
-player_master = build_player_data()
+hcboxplot(x = stats_master$pts, name = "Length", color = "#2980b9") %>%
+  hc_add_series("scatter", tibble(x = 21), hcaes(y = x))
 
 
-
-build_player_table(plyrid, player_stats, player_master, career_stats, TRUE)
 
