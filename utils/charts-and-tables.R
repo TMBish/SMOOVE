@@ -2,31 +2,54 @@
 # WRAPPERS
 # ++++++++++++++++++++++++
 
-build_season_chart = function(game_log, team_log, stat_name, per_mode) {
+build_season_chart = function(game_log, team_log, season_stat_master, stat_name, per_mode) {
   
   # Examples
-  plyrid = get_player("Justise", "Winslow")
-  game_log = get_player_gamelog(plyrid, season = "2017-18")
-  stat_name = "Field Goal %"
-  team_log = get_team_games(player_master %>% filter(player_id == plyrid) %>% pull(teamid))
+  # plyrid = get_player("Justise", "Winslow")
+  # game_log = get_player_gamelog(plyrid, season = "2017-18")
+  # career_log = get_player_career_stats(plyrid)
+  # stat_name = "Field Goal %"
+  # team_log = get_team_games(player_master %>% filter(player_id == plyrid) %>% pull(teamid))
+  # season_stat_master = stats_master
   
   # Get config
-  config = assemble_intra_season_config(game_log, app_config, stat_name) 
+  config = assemble_config(app_config, stat_name, game_log = game_log) 
   
   # Assemble chart data
   d_f = assemble_intra_season_data(game_log, team_log, config)
   
-  # Get median
+  # Get peer median
+  peer_median = get_peer_median(season_stat_master, config %>% pluck("stat-config", "label"))
+
+  # Produce chart
+  chart = make_season_chart(d_f, config, peer_median, per_mode)
   
-  # Produce Chart
-  chart = make_season_chart(d_f, config, per_mode)
+  return(chart)
+}
+
+
+build_career_chart = function(career_log, season_stat_master, stat_name, per_mode) {
+  
+  # Get config
+  config = assemble_config(app_config, stat_name) 
+  
+  # Assemble chart data
+  d_f = assemble_inter_season_data(career_log, config)
+  
+  # Get peer median
+  peer_median = get_peer_median(season_stat_master, config %>% pluck("stat-config", "label"))
+  
+  # Produce chart
+  chart = make_career_chart(d_f, config, peer_median, per_mode)
+  
+  return(chart)
 }
 
 # ++++++++++++++++++++++++
 # CHART BUILDERS
 # ++++++++++++++++++++++++
 
-make_season_chart = function(chart_input, config, per_mode) {
+make_season_chart = function(chart_input, config, peer_median, per_mode) {
 
   # ++++++++++++
   # Chart Options
@@ -48,16 +71,16 @@ make_season_chart = function(chart_input, config, per_mode) {
   # Number formatting
   if (str_detect(stat_label, "\\%")) {
     # A % based stat (per game / per 36 doesn't make sense)
-    raw_series_name = stat_name
-    y_axis_name = stat_name
+    raw_series_name = stat_label
+    y_axis_name = stat_label
   } else if (per_mode == "Per 36") {
     # Per 36 & Not a % based stat
-    raw_series_name = glue("{stat_name} {per_mode}")
-    y_axis_name = glue("{stat_name} {per_mode}")
+    raw_series_name = glue("{stat_label} {per_mode}")
+    y_axis_name = glue("{stat_label} {per_mode}")
   } else {
     # Per Game & Not a % based stat
-    raw_series_name = stat_name
-    y_axis_name = glue("{stat_name} {per_mode}")
+    raw_series_name = stat_label
+    y_axis_name = glue("{stat_label} {per_mode}")
   }
   
   # ++++++++++++
@@ -80,7 +103,7 @@ make_season_chart = function(chart_input, config, per_mode) {
       title = list(text = glue("{stat_label} {per_mode}")),
       plotLines = list(
         list(
-          value = 0.45,
+          value = peer_median,
           color = "#ED074F",
           width = 1,
           label = list(
@@ -105,7 +128,23 @@ make_season_chart = function(chart_input, config, per_mode) {
     
     chart = chart %>%
       hc_yAxis_multiples(
-        list(labels = list(formatter = JS("function(){return(this.value*100 + '%')}")), title = list(text = raw_series_name)),
+        list(
+          labels = list(formatter = JS("function(){return(this.value*100 + '%')}")), 
+          title = list(text = raw_series_name),
+          plotLines = list(
+            list(
+              value = peer_median,
+              color = "#ED074F",
+              width = 1,
+              label = list(
+                text = "peer median",
+                 style = list(color = "#ED074F", fontWeight = "bold", fontSize = "12px"),
+                 align = "left"
+              )
+            , zIndex = 10
+            )
+          )
+        ),
         list(title = list(text = vol_stat_label), opposite = TRUE)
       ) %>%
       hc_add_series(
@@ -120,19 +159,108 @@ make_season_chart = function(chart_input, config, per_mode) {
     
   }
   
+  return(chart)
+  
+}
+
+
+make_career_chart = function(chart_input, config, peer_median, per_mode) {
+  
+  # ++++++++++++
+  # Chart Options
+  # ++++++++++++
+  
+  # English name of the stat for labels
+  stat_label = 
+    config %>% 
+    pluck("stat-config", "label")
+    
+  # Number formatting
+  if (str_detect(stat_label, "\\%")) {
+    axformatter = JS("function(){ return(Math.round(this.value * 100) + '%')}")
+    dlformatter = JS("function(){ return(Math.round(this.y * 100) + '%')}")
+    per_mode = ""
+  } else {
+    axformatter = JS("function(){ return(this.value) }")
+    dlformatter = JS("function(){ return(this.y) }")
+  }
+  
+  # Axis Limits
+  y_min = pmin(
+    # Default Min
+    config %>% pluck("stat-config", "axis", "default-min"), 
+    # Player Specific
+    (chart_input %>% pull(season_avg) %>% min()) - config %>% pluck("stat-config", "axis", "shift-unit")
+  )
+  y_max = pmax(
+    # Default Min
+    config %>% pluck("stat-config", "axis", "default-max"), 
+    # Player Specific
+    (chart_input %>% pull(season_avg) %>% max()) + config %>% pluck("stat-config", "axis", "shift-unit")
+  )
+  
+  # ++++++++++++
+  # Chart Build
+  # ++++++++++++
+  chart = 
+    hchart(
+      chart_input, 
+      name = "Season Avg", 
+      "column", 
+      hcaes(x = season_id, y = season_avg)
+    ) %>%
+    hc_title(text = "Career") %>%
+    hc_colors("#1d89ff") %>%
+    hc_yAxis(
+      title = list(text = glue("{stat_label} {per_mode}")), 
+      labels = list(formatter = axformatter),
+      min = y_min, max = y_max,
+      plotLines = list(
+        list(
+          value = peer_median,
+          color = "#ED074F",
+          width = 1,
+          label = list(text = "peer median", style = list(color = "#ED074F", fontWeight = "bold", fontSize = "12px"))
+          #, zIndex = 10
+        )
+      )
+    ) %>%
+    hc_xAxis(title = list(text = "Season")) %>%
+    hc_add_theme(hc_theme_smoove()) %>%
+    hc_plotOptions(
+      column = list(
+        dataLabels = list(
+          enabled = TRUE,
+          #inside = TRUE,
+          #verticalAlign = "top",
+          #color = "#FFF",
+          backgroundColor = NULL,
+          style = list(textOutline = NULL, fontWeight = "normal", backgroundColor = "#FFF"),
+          formatter = dlformatter
+        )
+      )
+    )
+    
+    
+    return(chart)
+  
+  
 }
 
 # ++++++++++++++++++++++++
 # CHART DATA BUILDERS
 # ++++++++++++++++++++++++
 
-assemble_intra_season_config = function(game_log, app_config, stat_name) {
+assemble_config = function(app_config, stat_name, game_log = NULL) {
   
   output = list()
   
-  output$season_name = game_log$season[1]  
+  # Stat information
   output$`stat-config` = app_config %>% pluck("basic-stats", stat_name)
   output$`stat-config`$label = stat_name
+  
+  # Season if gamelog provided
+  if (!is.null(game_log)) output$season_name = game_log$season[1]
   
   return(output)
   
@@ -202,11 +330,30 @@ assemble_intra_season_data = function(game_log, team_log, config) {
   
 }
 
-assemble_inter_season_data = function() {
+assemble_inter_season_data = function(career_log, config) {
+
+  # Get info from the config list
+  col = config %>% pluck("stat-config", "col")
+  vol_switch = config %>% pluck("stat-config", "volume") %>% is.null()
   
+  # Season ID Map
+  career_log = 
+    career_log %>% 
+    arrange(season_id) %>%
+    mutate(season_id = str_sub(season_id, start = 3))
   
+  # Based on boolean select the stat col and maybe volume col
+  if (vol_switch) {
+    d_f = career_log %>% select(season_id, season_avg = !!col) 
+  } else {
+    vol_col = config %>% pluck("stat-config", "volume", "attempts") 
+    d_f = career_log %>% select(season_id, season_avg = !!col, volume = !!vol_col) 
+  }
+  
+  return(d_f)
   
 }
+
 # ++++++++++++++++++++++++
 # CHART BUILDERS
 # ++++++++++++++++++++++++

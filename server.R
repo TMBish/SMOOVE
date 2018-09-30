@@ -4,6 +4,7 @@ shinyServer(function(input, output, session) {
   # Reactive Values Store ---------------------------------------------------
   revals = reactiveValues(
     player_id = NULL,
+    team_log = NULL,
     gamelog_team = NULL,
     gamelog_raw = NULL,
     gamelog_out = NULL,
@@ -33,6 +34,11 @@ shinyServer(function(input, output, session) {
     
     # Update Career Stats
     revals$career_raw = get_player_career_stats(id_)
+    
+    # Update team games log
+    revals$team_log = get_team_games(
+      player_master %>% filter(player_id == id_) %>% pull(teamid)
+    )
     
     # Peer group
     revals$starter_bench = ifelse(glraw %>% pull(min) %>% mean() > 28, "Starting", "Bench")
@@ -151,16 +157,21 @@ shinyServer(function(input, output, session) {
   output$core_season = renderHighchart({
     
     req(revals$gamelog_out)
+    req(revals$team_log)
     
     # Stat name & per mode
     core_stat_name = input$core_stat_type
     per_mode = per_mode_translation(input$per_36_enable)
     
-    # Get peer median?
-    stat_median = get_peer_median(stats_master, core_stat_name)
-    
     # Build chart
-    chart_stat_season(revals$gamelog_out, stat_name = core_stat_name, stat_median = stat_median, per_mode = per_mode)
+    build_season_chart(
+      game_log = revals$gamelog_out,
+      team_log = revals$team_log,
+      season_stat_master = stats_master,
+      stat_name = core_stat_name,
+      per_mode = per_mode
+    )
+    #chart_stat_season(revals$gamelog_out, stat_name = core_stat_name, stat_median = stat_median, per_mode = per_mode)
     
   })
 
@@ -172,28 +183,21 @@ shinyServer(function(input, output, session) {
     core_stat_name = input$core_stat_type
     per_mode = per_mode_translation(input$per_36_enable)
     
-    # Get peer median?
-    stat_median = get_peer_median(stats_master, core_stat_name)
-    
     # Build chart
-    chart_stat_career(revals$career_out, stat_name = core_stat_name, stat_median = stat_median, per_mode = per_mode)
+    #chart_stat_career(revals$career_out, stat_name = core_stat_name, stat_median = stat_median, per_mode = per_mode)
+    build_career_chart(
+      career_log = revals$career_out,
+      season_stat_master = stats_master,
+      stat_name = core_stat_name,
+      per_mode = per_mode
+    )
     
   })
 
   output$core_career1 = renderHighchart({
-    
     req(revals$career_out)
-    
-    # Stat name & per mode
-    core_stat_name = input$core_stat_type
-    per_mode = per_mode_translation(input$per_36_enable)
-    
-    # Get peer median?
-    stat_median = get_peer_median(stats_master, core_stat_name)
-    
-    # Build chart
-    chart_stat_career(revals$career_out, stat_name = core_stat_name, stat_median = stat_median, per_mode = per_mode)
-    #highcharts_demo() %>% hc_add_theme(hc_theme_smoove())
+
+    highcharts_demo() %>% hc_add_theme(hc_theme_smoove())
     
   })
   
@@ -201,49 +205,72 @@ shinyServer(function(input, output, session) {
   # Efficiency
   output$efficiency_season = renderHighchart({
     
+    # req(revals$gamelog_out)
+    
+    # # Stat name & per mode
+    # eff_stat_name = input$efficiency_stat_type
+    # per_mode = per_mode_translation(input$per_36_enable)
+    
+    # # Get peer median?
+    # stat_median = get_peer_median(stats_master, eff_stat_name)
+    
+    # # Build chart
+    # chart_stat_season(revals$gamelog_out, stat_name = eff_stat_name, stat_median = stat_median, per_mode = per_mode)
+    
+    
     req(revals$gamelog_out)
+    req(revals$team_log)
     
     # Stat name & per mode
     eff_stat_name = input$efficiency_stat_type
     per_mode = per_mode_translation(input$per_36_enable)
     
-    # Get peer median?
-    stat_median = get_peer_median(stats_master, eff_stat_name)
-    
     # Build chart
-    chart_stat_season(revals$gamelog_out, stat_name = eff_stat_name, stat_median = stat_median, per_mode = per_mode)
+    build_season_chart(
+      game_log = revals$gamelog_out,
+      team_log = revals$team_log,
+      season_stat_master = stats_master,
+      stat_name = eff_stat_name,
+      per_mode = per_mode
+    )
     
   })
   
   output$efficiency_career = renderHighchart({
     
+    # req(revals$career_out)
+    
+    # # Stat name
+    # eff_stat_name = input$efficiency_stat_type
+    # per_mode = per_mode_translation(input$per_36_enable)
+    
+    # # Get peer median?
+    # stat_median = get_peer_median(stats_master, eff_stat_name)
+    
+    # # Build chart
+    # chart_stat_career(revals$career_out, stat_name = eff_stat_name, stat_median = stat_median, per_mode = per_mode)
+
     req(revals$career_out)
     
-    # Stat name
+    # Stat name & per mode
     eff_stat_name = input$efficiency_stat_type
     per_mode = per_mode_translation(input$per_36_enable)
     
-    # Get peer median?
-    stat_median = get_peer_median(stats_master, eff_stat_name)
-    
     # Build chart
-    chart_stat_career(revals$career_out, stat_name = eff_stat_name, stat_median = stat_median, per_mode = per_mode)
-    
+    #chart_stat_career(revals$career_out, stat_name = core_stat_name, stat_median = stat_median, per_mode = per_mode)
+    build_career_chart(
+      career_log = revals$career_out,
+      season_stat_master = stats_master,
+      stat_name = eff_stat_name,
+      per_mode = per_mode
+    )
   })
   
-    output$efficiency_career1 = renderHighchart({
+  output$efficiency_career1 = renderHighchart({
     
     req(revals$career_out)
     
-    # Stat name
-    eff_stat_name = input$efficiency_stat_type
-    per_mode = per_mode_translation(input$per_36_enable)
-    
-    # Get peer median?
-    stat_median = get_peer_median(stats_master, eff_stat_name)
-    
-    # Build chart
-    chart_stat_career(revals$career_out, stat_name = eff_stat_name, stat_median = stat_median, per_mode = per_mode)
+    highcharts_demo() %>% hc_add_theme(hc_theme_smoove())
     
   })
   
