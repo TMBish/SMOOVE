@@ -47,8 +47,40 @@ career_stats = get_player_career_stats(plyrid)
 
 player_master = build_player_data()
 
-build_player_table(plyrid, player_stats, player_master, career_stats, TRUE)
+player_table = build_player_table(plyrid, player_stats, player_master, career_stats, TRUE)
 
+
+dtab = player_table %>% as.data.frame()
+rownames(dtab) = dtab$statistic
+dtab = dtab %>% select(-statistic)
+
+column_container = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(rowspan = 2, ""),
+      th(colspan = 4, "per 36")
+    ),
+    tr(
+      lapply(c("Career Avg", "2017-18", "Peer Median", "Peer %tile"), th)
+    )
+  )
+))
+
+datatable(
+  dtab
+  #, colnames = c('Career Avg', "2017-18", "Peer Median", "Peer %tile")
+  , container = column_container
+  , selection = "none"
+  , class = 'compact hover row-border'
+  , options = list(
+    dom = 't',
+    pageLength = 20,
+    columnDefs = list(
+      list(className = 'dt-center', targets = c(1, 2, 3, 4))
+    )
+  )
+)
 
 
 
@@ -78,41 +110,87 @@ df = response_to_df(response, 1)
 
 # Playing around with the distribution function --------------------------------------------------------------
 
-jitter = function(x) {
-  
-  rand_sign = sample(c(1,-1), size = length(x), replace = TRUE)
-  
-  rescaled_x = abs((x-mean(x)) / sd(x))
-  rescaled_x = round(rescaled_x * 2)
-  rescaled_x = case_when(
-    rescaled_x < 0.2 ~ 0.2,
-    TRUE ~ rescaled_x
-  )
+smoove_jitter = function(x) {
   
   
-  rescaled_x %>%
-    map_dbl(~runif(1, min = -1/., max = 1/.))
+  # CDF
+  cdf = dnorm(x, mean = mean(x), sd = sd(x))
+  #y = abs(cdf-0.5) * 2
+  
+  (cdf %>%
+    map_dbl(~runif(1, 0, .)) ) 
+  #* sample(c(-1,1), size = length(x), replace = TRUE)
+  
+
+  #return(cdf)
     
 }
 
 
-stats_master %>% 
-  filter(min > 20) %>%
+name_ = "Paul George"
+
+# d_f = stats_master %>% 
+#   inner_join(player_master %>% select(player_id, position), by = "player_id") %>%
+#   mutate(position_map = position_mapper(position)) %>%
+#   filter(min > 28, gp > 30, position == "G") %>%
+#   select(player_name, "value" = pts) %>%
+#   mutate(
+#     y_jitter = 1,
+#       #smoove_jitter(value),
+#     colour = ifelse(player_name == name_, 1, 0)
+#   ) %>%
+#   mutate(
+#     hctooltip = glue("<b> {player_name} </b> <br> Points Per Game: {value}")
+#   )
+# 
+# hchart(d_f %>% filter(colour == 0), "scatter", hcaes(x = value, y = y_jitter), color = "grey") %>%
+#   hc_add_series(d_f %>% filter(colour==1), "scatter", hcaes(x = value, y = y_jitter), color = "#ED074F", marker = list(radius = 5)) %>%
+#   hc_add_theme(hc_theme_smoove()) %>%
+#   hc_yAxis(
+#     title = list(text = ""),
+#     gridLineWidth = 0,
+#     lineWidth = 0,
+#     #min = -0.0001,
+#     labels = list(enabled = FALSE)
+#   ) %>%
+#   hc_tooltip(
+#     useHTML = TRUE,
+#     formatter = JS("function(){return(this.point.hctooltip)}")
+#   )
+  
+  
+d_f = stats_master %>% 
+  inner_join(player_master %>% select(player_id, position), by = "player_id") %>%
+  mutate(position_map = position_mapper(position)) %>%
+  filter(min > 26, gp > 30, position == "F") %>%
   select(player_name, "value" = pts) %>%
   mutate(
-    y_jitter = jitter(value)
+    bucket = round(value / 2) * 2,
+    colour = ifelse(player_name == name_, 1, 0)
   ) %>%
-  hchart("scatter", hcaes(x = value, y = y_jitter))
-  
-  pull(pts) %>% 
-  hchart() %>% 
-  hc_add_theme(hc_theme_smoove()) %>%
-  hc_plotOptions(
-    column = list(borderColor = "#000", borderWidth = 4)
+  group_by(bucket) %>%
+  mutate(y =  dense_rank(value)) %>%
+  ungroup() %>%
+  mutate(
+    hctooltip = glue("<b> {player_name} </b> <br> Points Per Game: {value}")
   )
 
-hcboxplot(x = stats_master$pts, name = "Length", color = "#2980b9") %>%
-  hc_add_series("scatter", tibble(x = 21), hcaes(y = x))
 
-
+hchart(
+  d_f %>% filter(colour == 0), "scatter", hcaes(x = bucket, y = y), 
+  marker = list(radius = 6, symbol = "square"), color = "grey"
+  ) %>%
+  hc_add_series(d_f %>% filter(colour==1), "scatter", hcaes(x = bucket, y = y), color = "#ED074F", marker = list(radius = 6, symbol = "square")) %>%
+  hc_add_theme(hc_theme_smoove()) %>%
+  hc_yAxis(
+    title = list(text = ""),
+    gridLineWidth = 0,
+    lineWidth = 0,
+    #min = -0.0001,
+    labels = list(enabled = FALSE)
+  ) %>%
+  hc_tooltip(
+    useHTML = TRUE,
+    formatter = JS("function(){return(this.point.hctooltip)}")
+  )
 

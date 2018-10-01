@@ -55,7 +55,11 @@ div(class = "sidebar pad-15",
     h4("OVERVIEW.")
   ), br(),
   
-  textOutput("peergrp"), br(),
-    
+  div(class="numberCircle", "i"),
+  div(class = "centered", textOutput("peergrp")),
+
+  br(),
+  
+  div(class="numberCircle", "ii"),
   DTOutput("player_stat_table")
 )

@@ -2,15 +2,13 @@
 # WRAPPERS
 # ++++++++++++++++++++++++
 
-build_season_chart = function(game_log, team_log, season_stat_master, stat_name, per_mode) {
-  
-  # Examples
-  # plyrid = get_player("Justise", "Winslow")
-  # game_log = get_player_gamelog(plyrid, season = "2017-18")
-  # career_log = get_player_career_stats(plyrid)
-  # stat_name = "Field Goal %"
-  # team_log = get_team_games(player_master %>% filter(player_id == plyrid) %>% pull(teamid))
-  # season_stat_master = stats_master
+build_season_chart = function(
+  game_log, 
+  team_log, 
+  peer_stats,
+  stat_name, 
+  per_mode
+  ) {
   
   # Get config
   config = assemble_config(app_config, stat_name, game_log = game_log) 
@@ -19,7 +17,11 @@ build_season_chart = function(game_log, team_log, season_stat_master, stat_name,
   d_f = assemble_intra_season_data(game_log, team_log, config)
   
   # Get peer median
-  peer_median = get_peer_median(season_stat_master, config %>% pluck("stat-config", "label"))
+  peer_median = 
+    peer_stats %>% 
+    select(value = !!(config %>% pluck("stat-config", "col"))) %>% 
+    summarise(median = median(value, na.rm = TRUE)) %>%
+    pull(median)
 
   # Produce chart
   chart = make_season_chart(d_f, config, peer_median, per_mode)
@@ -28,7 +30,7 @@ build_season_chart = function(game_log, team_log, season_stat_master, stat_name,
 }
 
 
-build_career_chart = function(career_log, season_stat_master, stat_name, per_mode) {
+build_career_chart = function(career_log, peer_stats, stat_name, per_mode) {
   
   # Get config
   config = assemble_config(app_config, stat_name) 
@@ -37,17 +39,87 @@ build_career_chart = function(career_log, season_stat_master, stat_name, per_mod
   d_f = assemble_inter_season_data(career_log, config)
   
   # Get peer median
-  peer_median = get_peer_median(season_stat_master, config %>% pluck("stat-config", "label"))
+  peer_median = 
+    peer_stats %>% 
+    select(value = !!(config %>% pluck("stat-config", "col"))) %>% 
+    summarise(median = median(value, na.rm = TRUE)) %>%
+    pull(median)
   
   # Produce chart
   chart = make_career_chart(d_f, config, peer_median, per_mode)
   
   return(chart)
+  
+}
+
+
+build_distribution_chart = function(player_id, peer_stats, stat_name) {
+  
+  # Get config
+  config = assemble_config(app_config, stat_name) 
+  
+  # Build Chart
+  chart = make_distribution_chart(player_id, peer_stats, config)
+  
 }
 
 # ++++++++++++++++++++++++
 # CHART BUILDERS
 # ++++++++++++++++++++++++
+
+make_distribution_chart = function(plyid, peer_stats, config) {
+  
+  # Round units
+  ru = config %>% pluck("stat-config", "axis", "shift-unit")
+  
+  d_f = 
+  peer_stats %>% 
+  select(player_name, player_id, "value" = config %>% pluck("stat-config", "col")) %>%
+  mutate(
+    stat_bucket = round(value / ru) * ru,
+    highlight = ifelse(player_id == plyid, "Y", "N")
+  ) %>%
+  group_by(stat_bucket) %>%
+  mutate(y =  dense_rank(value)) %>%
+  ungroup() %>%
+  mutate(
+    hctooltip = glue("<b> {player_name} </b> <br> {value}")
+  )
+  
+  # ++++++++++++
+  # Chart Build
+  # ++++++++++++
+  hchart(
+    d_f %>% filter(highlight == "N"),
+    "scatter", 
+    hcaes(x = stat_bucket, y = y), 
+    marker = list(radius = 6, symbol = "square"), color = "#e0e0e0"
+  ) %>%
+  hc_add_series(
+    d_f %>% filter(highlight == "Y"),
+    "scatter", 
+    hcaes(x = stat_bucket, y = y), 
+    marker = list(radius = 6, symbol = "square"), color = "#1d89ff"
+  ) %>%
+  hc_add_theme(hc_theme_smoove()) %>%
+  hc_yAxis(
+    title = list(text = ""),
+    gridLineWidth = 0,
+    lineWidth = 0,
+    labels = list(enabled = FALSE)
+  ) %>%
+  hc_xAxis(
+    title = list(text = config %>% pluck("stat-config", "label"))
+  ) %>%
+  hc_title(text = "Peer Distribution") %>%
+  hc_tooltip(
+    useHTML = TRUE,
+    formatter = JS("function(){return(this.point.hctooltip)}")
+  )
+  
+  
+}
+
 
 make_season_chart = function(chart_input, config, peer_median, per_mode) {
 
@@ -565,9 +637,10 @@ build_player_table = function(
   plyid, 
   statsdf, 
   playerdf,
-  careerstatsdf, 
-  starter_bench,
-  position,
+  careerstatsdf,
+  peer_stats, 
+  # starter_bench,
+  # position,
   per36 = FALSE
 ) {
   
@@ -583,7 +656,7 @@ build_player_table = function(
   statsdf = 
     statsdf %>%
     inner_join(playerdf %>% select(player_id, position)) %>%
-    mutate(position_map = position_mapper(position)) 
+    mutate(position_map = position_mapper(position))
   
   # Stats of interest
   statcats = c(
@@ -613,23 +686,9 @@ build_player_table = function(
   # Peer Data
   # +++++++++++++
   
-  if (starter_bench == "Starting") {
-    peer_base = 
-      statsdf %>%
-      filter(min > 28 & gp > 5) %>%
-      filter(position_map == position) %>%
-      select(one_of(statcats))
-  } else {
-    peer_base = 
-      statsdf %>%
-      filter(min < 28 & gp > 5) %>%
-      filter(position_map == position) %>%
-      select(one_of(statcats))
-  }
-  
   # Get poisition per 36 average
   peer_median = 
-    peer_base %>%
+    peer_stats %>%
     summarise_all(median) %>%
     mutate_at(vars(contains("pct")), scales::percent) %>%
     mutate(min = ifelse(per36, 36, min)) %>%
@@ -641,7 +700,7 @@ build_player_table = function(
     gather(statistic, value) %>%
     pmap_dfr(
       .f = function(statistic, value) {
-        estimator = ecdf(peer_base %>% pull(statistic))
+        estimator = ecdf(peer_stats %>% pull(statistic))
         tibble(
           statistic = statistic,
           peer_percentile = round(estimator(value) * 100, 0)

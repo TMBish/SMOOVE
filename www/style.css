@@ -17,6 +17,7 @@ h1 {
 
 h4 {
   margin-top: 0;
+  font-size: 14px;
 }
 
 /* Title Bar */
@@ -84,7 +85,7 @@ h4 {
 
 #player_name {
   color: #232b2b;
-  font-size: 14px;
+  font-size: 12px;
   text-align: center;
 }
 
@@ -96,7 +97,28 @@ h4 {
   margin-top: 25px;
 }
 
+/* +++++++++++++ */
+/* PLAYER RESULTS */
+/* +++++++++++++ */
+.numberCircle {
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  padding: 2px;
+  background: #fff;
+  border: 2px solid #3e3f3a;
+  color: #3e3f3a;
+  text-align: center;
+  font-size: 10px;
+  font-weight: bold;
+}
+
 #player_stat_table {
   font-family: 'Roboto Mono', serif;
-  font-size: 12px;
+  font-size: 10px;
+  text-align: center;
+}
+
+th {
+  text-align: center;
 }

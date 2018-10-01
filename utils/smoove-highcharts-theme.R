@@ -50,7 +50,7 @@ hc_theme_smoove = function() {
         scatter = list(marker = list(symbol = "square", radius = 2)),
         spline = list(marker = list(symbol = "circle", lineWidth = 2, radius = 0)),
         # column = list(dataLabels = list(backgroundColor = "#FFF"))
-        column = list(dataLabels = list(backgroundColor = "#FFF"))
+        column = list(dataLabels = list(backgroundColor = "#FFF", style = list(fontSize = 8)))
 
       ),
       legend = list(
