@@ -37,50 +37,32 @@ app_config = yaml.load_file("./data/config.yaml")
 plyrid = get_player("Blake", "Griffin")
 
 # Get player gamelog
-gamelog = get_player_gamelog(plyrid, season = "2017-18")
+game_log = get_player_gamelog(plyrid, season = "2017-18")
 
 # Get all player stats - season averages for all players
-player_stats = get_all_player_stats(season = "2017-18")
+#player_stats = get_all_player_stats(season = "2017-18")
 
 # Career stasts - players career stasts
 career_stats = get_player_career_stats(plyrid)
 
-player_master = build_player_data()
+# Team log
+team_log = build_team_log(career_stats)
+
+# Peer stats
+peer_stats = get_peer_stats(stats_master, player_master, "Both", "F")
+
+# Misc
+stat_name = "Points"
+per_mode = "Per 36"
+
+
+
+#player_master = build_player_data()
 
 player_table = build_player_table(plyrid, player_stats, player_master, career_stats, TRUE)
 
+build_season_chart(gamelog, team_log, peer_stats, stat_name, per_mode)
 
-dtab = player_table %>% as.data.frame()
-rownames(dtab) = dtab$statistic
-dtab = dtab %>% select(-statistic)
-
-column_container = htmltools::withTags(table(
-  class = 'display',
-  thead(
-    tr(
-      th(rowspan = 2, ""),
-      th(colspan = 4, "per 36")
-    ),
-    tr(
-      lapply(c("Career Avg", "2017-18", "Peer Median", "Peer %tile"), th)
-    )
-  )
-))
-
-datatable(
-  dtab
-  #, colnames = c('Career Avg', "2017-18", "Peer Median", "Peer %tile")
-  , container = column_container
-  , selection = "none"
-  , class = 'compact hover row-border'
-  , options = list(
-    dom = 't',
-    pageLength = 20,
-    columnDefs = list(
-      list(className = 'dt-center', targets = c(1, 2, 3, 4))
-    )
-  )
-)
 
 
 

@@ -80,7 +80,8 @@ make_distribution_chart = function(plyid, peer_stats, config) {
     highlight = ifelse(player_id == plyid, "Y", "N")
   ) %>%
   group_by(stat_bucket) %>%
-  mutate(y =  dense_rank(value)) %>%
+  arrange(value) %>%
+  mutate(y = row_number()) %>%
   ungroup() %>%
   mutate(
     hctooltip = glue("<b> {player_name} </b> <br> {value}")
@@ -93,13 +94,13 @@ make_distribution_chart = function(plyid, peer_stats, config) {
     d_f %>% filter(highlight == "N"),
     "scatter", 
     hcaes(x = stat_bucket, y = y), 
-    marker = list(radius = 6, symbol = "square"), color = "#e0e0e0"
+    marker = list(radius = 4, symbol = "square"), color = "#e0e0e0"
   ) %>%
   hc_add_series(
     d_f %>% filter(highlight == "Y"),
     "scatter", 
     hcaes(x = stat_bucket, y = y), 
-    marker = list(radius = 6, symbol = "square"), color = "#1d89ff"
+    marker = list(radius = 4, symbol = "square"), color = "#1d89ff"
   ) %>%
   hc_add_theme(hc_theme_smoove()) %>%
   hc_yAxis(
@@ -140,11 +141,29 @@ make_season_chart = function(chart_input, config, peer_median, per_mode) {
       is.null()
     )
   
+
+  # Set a base tooltip formatter for volume stats
+  tooltip_formatter = JS("function(){return('<b> Game Number: </b>' + this.x + '<br> <b>' + this.series.name + '</b>: ' + (Math.round(this.y * 100) / 100))}")
+  
   # Number formatting
   if (str_detect(stat_label, "\\%")) {
     # A % based stat (per game / per 36 doesn't make sense)
     raw_series_name = stat_label
     y_axis_name = stat_label
+
+    # Need a custom tooltip formatter for this series type
+    tooltip_formatter =   
+      JS(
+            "function(){
+              var seriesname = this.series.name;
+              if (seriesname.includes('Attempts')) {
+                var yval = (Math.round(this.y * 100) / 100);
+              } else {
+                var yval = Math.round(this.y * 100)  + '%';
+              };
+              return('<b> Game Number: </b>' + this.x + '<br> <b>' + seriesname + '</b>: ' + yval)
+      }")
+
   } else if (per_mode == "Per 36") {
     # Per 36 & Not a % based stat
     raw_series_name = glue("{stat_label} {per_mode}")
@@ -154,7 +173,10 @@ make_season_chart = function(chart_input, config, peer_median, per_mode) {
     raw_series_name = stat_label
     y_axis_name = glue("{stat_label} {per_mode}")
   }
-  
+
+
+
+
   # ++++++++++++
   # Chart Build
   # ++++++++++++
@@ -189,7 +211,10 @@ make_season_chart = function(chart_input, config, peer_median, per_mode) {
     ) %>%
     hc_xAxis(title = list(text = "Game Number")) %>%
     hc_add_theme(hc_theme_smoove()) %>%
-    hc_tooltip(shared = TRUE, crosshairs = TRUE)
+    hc_tooltip(
+      formatter = tooltip_formatter,
+      crosshairs = TRUE
+    )
   
   # Add in volume bar chart if required
   if (volume_required) {
@@ -347,9 +372,29 @@ assemble_intra_season_data = function(game_log, team_log, config) {
   # Join player gamelog and teamlog
   d_f = 
     team_log %>%
-    left_join(game_log, by = "game_id") 
-    # %>% arrange(game_id) %>%
-    # mutate(game_number = row_number())
+    left_join(game_log, by = "game_id")
+
+  # If multi team season
+  if (d_f %>% summarise(teams = n_distinct(team_id)) %>% pull(teams) > 1) {
+
+    second_team = 
+      d_f %>% 
+      filter(!is.na(player_id)) %>% 
+      # Old team plays new team
+      group_by(game_id) %>% mutate(appearances = n()) %>% ungroup() %>%
+      filter(appearances == 1) %>%
+      # Find earliest game per team
+      group_by(team_id) %>% 
+      summarise(game_id = min(game_id)) %>% 
+      filter(game_id == max(game_id))
+
+    d_f = 
+      d_f %>%
+      filter(
+        (team_id == second_team$team_id & game_id >= second_team$game_id) |
+        (team_id != second_team$team_id & game_id < second_team$game_id)
+      )
+  }
     
   # Based on boolean select the stat col and maybe volume col
   if (vol_switch) {
@@ -427,209 +472,6 @@ assemble_inter_season_data = function(career_log, config) {
 }
 
 # ++++++++++++++++++++++++
-# CHART BUILDERS
-# ++++++++++++++++++++++++
-
-
-chart_stat_season = function(gamelog, stat_name, stat_median, per_mode, window = 5) {
-  
-  # Season Name
-  seaon_name = gamelog$season[1]
-  
-  # Get field config from app config list in parent environment
-  conf_item = app_config %>% pluck("basic-stats", stat_name)
-  
-  # Get real col header name from config
-  col = conf_item %>% pluck("col")
-  
-  # Boolean to control whether to chart volume (attempts) as bar chart
-  vol_switch = conf_item %>% pluck("volume-stat") %>% is.null()
-  
-  # Based on boolean select the stat col and maybe volume col
-  if (vol_switch) {
-    df = gamelog %>% select(game_id, raw = !!col) 
-  } else {
-    vol_col = conf_item %>% pluck("volume-stat") 
-    df = gamelog %>% select(game_id, raw = !!col, volume = !!vol_col) 
-  }
-
-  # Add in game number and cumulative season average
-  df = df %>%
-    arrange(game_id) %>%
-    select(-game_id) %>%
-    mutate(
-      game_number = row_number(),
-      season_average = cummean(raw)
-    )
-
-  # Add right aligned moving average based on window criteria
-  df$rolling_average = rollmean(df$raw, k = window, fill = NA, align = 'right')
-  
-  # ++++++++++++
-  # Chart Options
-  # ++++++++++++
-  
-  # Number formatting
-  if (str_detect(stat_name, "\\%")) {
-    per_mode = ""
-  }
-  
-  # ++++++++++++
-  # Chart Build
-  # ++++++++++++
-  chart = 
-    highchart() %>%
-    hc_add_series(name = glue("{stat_name} {ifelse(per_mode=='Per 36', per_mode, '')}"), df, "scatter", hcaes(x = game_number, y = raw), color = "rgba(62, 63, 58, 0.75)") %>%
-    hc_add_series(name = "Rolling Avg", df, "spline", hcaes(x = game_number, y = rolling_average)) %>%
-    hc_add_series(name = "Season Avg", df, "spline", visible= FALSE, hcaes(x = game_number, y = season_average)) %>%
-    hc_title(text = seaon_name) %>%
-    hc_yAxis(
-      title = list(text = glue("{stat_name} {per_mode}")),
-      plotLines = list(
-        list(
-          value = stat_median,
-          color = "#ED074F",
-          width = 1,
-          label = list(
-            text = "peer median",
-             style = list(color = "#ED074F", fontWeight = "bold", fontSize = "12px"),
-             align = "right"
-          )
-        #, zIndex = 10
-        )
-      )
-    ) %>%
-    hc_xAxis(title = list(text = "Game Number")) %>%
-    hc_add_theme(hc_theme_smoove()) %>%
-    hc_tooltip(shared = TRUE, crosshairs = TRUE)
-  
-  # Add in volume bar chart if required
-  if (!vol_switch) {
-    
-    vol_stat_label = conf_item %>% pluck("volume-stat-label")
-    
-    chart = chart %>%
-      hc_yAxis_multiples(
-        list(labels = list(formatter = JS("function(){return(this.value*100 + '%')}")), title = list(text = stat_name)),
-        list(title = list(text = vol_stat_label), opposite = TRUE)
-      ) %>%
-      hc_add_series(
-        name = vol_stat_label,
-        df,
-        "column",
-        hcaes(x = game_number, y = volume),
-        yAxis = 1,
-        zIndex = -10,
-        color = "#E0E0E0"
-      )
-    
-  }
-  
-  return(chart)
-  
-  
-}
-
-
-chart_stat_career = function(career_stats, stat_name, per_mode, stat_median) {
-  
-  # Get field config from app config list in parent environment
-  conf_item = app_config %>% pluck("basic-stats", stat_name)
-  
-  # Get real col header name from config
-  col = conf_item %>% pluck("col")
-  
-  # Boolean to control whether to chart volume (attempts) as bar chart
-  vol_switch = conf_item %>% pluck("volume-stat") %>% is.null()
-  
-  # Season ID Map
-  career_stats = career_stats %>% mutate(season_id = str_sub(season_id, start = 3))
-  
-  # Based on boolean select the stat col and maybe volume col
-  if (vol_switch) {
-    df = career_stats %>% select(season_id, season_avg = !!col) 
-  } else {
-    vol_col = conf_item %>% pluck("volume-stat") 
-    df = career_stats %>% select(season_id, season_avg = !!col, volume = !!vol_col) 
-  }
-  
-  # Add in game number and cumulative season average
-  df = df %>% arrange(season_id)
-  
-  # ++++++++++++
-  # Chart Options
-  # ++++++++++++
-  
-  # Number formatting
-  if (str_detect(stat_name, "\\%")) {
-    axformatter = JS("function(){ return(Math.round(this.value * 100) + '%')}")
-    dlformatter = JS("function(){ return(Math.round(this.y * 100) + '%')}")
-    per_mode = ""
-  } else {
-    axformatter = JS("function(){ return(this.value) }")
-    dlformatter = JS("function(){ return(this.y) }")
-  }
-  
-  # Axis Limits
-  y_min = pmin(
-    # Default Min
-    conf_item %>% pluck("axis", "default-min"), 
-    # Player Specific
-    (df %>% pull(season_avg) %>% min()) - conf_item %>% pluck("axis", "shift-unit")
-  )
-  y_max = pmax(
-    # Default Min
-    conf_item %>% pluck("axis", "default-max"), 
-    # Player Specific
-    (df %>% pull(season_avg) %>% max()) + conf_item %>% pluck("axis", "shift-unit")
-  )
-  
-  # ++++++++++++
-  # Chart Build
-  # ++++++++++++
-  chart = 
-    hchart(
-      df, 
-      name = "Season Avg", 
-      "column", 
-      hcaes(x = season_id, y = season_avg)
-    ) %>%
-    hc_title(text = "Career") %>%
-    hc_colors("#1d89ff") %>%
-    hc_yAxis(
-      title = list(text = glue("{stat_name} {per_mode}")), 
-      labels = list(formatter = axformatter),
-      min = y_min, max = y_max,
-      plotLines = list(list(
-        value = stat_median,
-        color = "#ED074F",
-        width = 1,
-        label = list(text = "peer median", style = list(color = "#ED074F", fontWeight = "bold", fontSize = "12px"))
-        #, zIndex = 10
-      ))
-    ) %>%
-    hc_xAxis(title = list(text = "Season")) %>%
-    hc_add_theme(hc_theme_smoove()) %>%
-    hc_plotOptions(
-      column = list(
-        dataLabels = list(
-          enabled = TRUE,
-          #inside = TRUE,
-          #verticalAlign = "top",
-          #color = "#FFF",
-          backgroundColor = NULL,
-          style = list(textOutline = NULL, fontWeight = "normal", backgroundColor = "#FFF"),
-          formatter = dlformatter
-        )
-      )
-    )
-    
-  return(chart)
-  
-  
-}
-
-# ++++++++++++++++++++++++
 # TABLES BUILDERS
 # ++++++++++++++++++++++++
 
@@ -639,8 +481,6 @@ build_player_table = function(
   playerdf,
   careerstatsdf,
   peer_stats, 
-  # starter_bench,
-  # position,
   per36 = FALSE
 ) {
   
