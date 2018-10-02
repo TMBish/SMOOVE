@@ -74,6 +74,18 @@ make_distribution_chart = function(plyid, peer_stats, config, per_mode) {
 
   # Round units
   ru = config %>% pluck("stat-config", "axis", "shift-unit")
+
+  # Square sizing
+  players = nrow(peer_stats)
+  if (players < 20) {
+    square_size = 10
+  } else if (players < 40) {
+    square_size = 6
+  } else if (players < 70) {
+    square_size = 4
+  } else {
+    square_size = 2
+  }
   
   d_f = 
   peer_stats %>% 
@@ -127,13 +139,13 @@ make_distribution_chart = function(plyid, peer_stats, config, per_mode) {
     d_f %>% filter(highlight == "N"),
     "scatter", 
     hcaes(x = stat_bucket, y = y), 
-    marker = list(radius = 4, symbol = "square"), color = "#e0e0e0"
+    marker = list(radius = square_size, symbol = "square"), color = "#e0e0e0"
   ) %>%
   hc_add_series(
     d_f %>% filter(highlight == "Y"),
     "scatter", 
     hcaes(x = stat_bucket, y = y), 
-    marker = list(radius = 4, symbol = "square"), color = "#1d89ff"
+    marker = list(radius = square_size, symbol = "square"), color = "#1d89ff"
   ) %>%
   hc_add_theme(hc_theme_smoove()) %>%
   hc_yAxis(
@@ -257,6 +269,10 @@ make_season_chart = function(chart_input, config, peer_median, per_mode) {
     vol_stat_label = 
       config %>% 
       pluck("stat-config", "volume", "stat-label")
+
+    vol_stat_short_label = 
+      config %>%
+      pluck("stat-config", "volume", "short-label")
     
     chart = chart %>%
       hc_yAxis_multiples(
@@ -280,7 +296,7 @@ make_season_chart = function(chart_input, config, peer_median, per_mode) {
         list(title = list(text = vol_stat_label), opposite = TRUE)
       ) %>%
       hc_add_series(
-        name = vol_stat_label,
+        name = vol_stat_short_label,
         chart_input,
         "column",
         hcaes(x = game_number, y = volume),

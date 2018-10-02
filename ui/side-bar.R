@@ -1,7 +1,9 @@
 
-div(class = "sidebar pad-15",       
+div(class = "sidebar key-info-box pad-15",       
   
-  # Header
+  # ++++++++++++++++++++++++
+  # PLAYER SECTION
+  # ++++++++++++++++++++++++
   div(class = "header-box",
     h4("PLAYER.")
   ),
@@ -17,7 +19,7 @@ div(class = "sidebar pad-15",
       
     ),
     
-    column(4,
+    column(4,  class = "drop-27",
       
       actionBttn(
         "player_search", 
@@ -32,13 +34,17 @@ div(class = "sidebar pad-15",
     
   ), br(),
 
-  # Overview
+  # ++++++++++++++++++++++++
+  # OPTIONS
+  # ++++++++++++++++++++++++
+
   div(class = "header-box",
     h4("OPTIONS.")
   ), br(),
   
   fluidRow(
-    column(4,
+    column(3, 
+      #class = "drop-27",
       prettySwitch(
        inputId = "per_36_enable",
        label = "Per 36", 
@@ -46,11 +52,23 @@ div(class = "sidebar pad-15",
        fill = TRUE
       )
     )
+    # column(4, 
+    #   selectInput(
+    #    inputId = "season_select",
+    #    label = "", 
+    #    choices = "2017-18"
+    #    #status = "success",
+    #    #fill = TRUE
+    #   )
+    # )
 
   ), br(),
 
   
-  # Overview
+  # ++++++++++++++++++++++++
+  # OVERVIEW
+  # ++++++++++++++++++++++++
+
   div(class = "header-box",
     h4("OVERVIEW.")
   ), br(),

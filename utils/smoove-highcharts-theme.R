@@ -55,7 +55,8 @@ hc_theme_smoove = function() {
         backgroundColor = "#FFF",
         shadow = TRUE,
         title = "Legend",
-        verticalAlign = "middle"
+        verticalAlign = "middle",
+        itemStyle = list(fontSize = "9px")
       )
     )
 }

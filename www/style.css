@@ -18,6 +18,7 @@ h1 {
 h4 {
   margin-top: 0;
   font-size: 14px;
+  font-weight: bold;
 }
 
 /* Title Bar */
@@ -69,14 +70,18 @@ h4 {
 }
 
 .sidebar {
-  background: #FFF;
-  color: #000000;
   width: 100%;
+  min-height: 600px;
+}
+
+.key-info-box {
+  background: #FFF;
+  color: #3e3f3a;
   border: 0.5px solid #3e3f3a;
   border-right-width: 3px;
   border-bottom-width: 3px;
-  min-height: 600px;
 }
+
 
 
 /* +++++++++++++ */
@@ -93,13 +98,17 @@ h4 {
   border: 1px solid #1d89ff;
 }
 
-#player_search {
-  margin-top: 25px;
+.drop-27 {
+  margin-top: 27px;
 }
 
+.drop-32 {
+  margin-top: 32px;
+}
 /* +++++++++++++ */
 /* PLAYER RESULTS */
 /* +++++++++++++ */
+
 .numberCircle {
   border-radius: 50%;
   width: 22px;
@@ -115,10 +124,21 @@ h4 {
 
 #player_stat_table {
   font-family: 'Roboto Mono', serif;
-  font-size: 10px;
+  font-size: 11px;
   text-align: center;
 }
 
 th {
   text-align: center;
+}
+
+
+/* +++++++++++++ */
+/* PLAYER RESULTS */
+/* +++++++++++++ */
+
+.player-name-pane-title {
+  font-weight: bold;
+  text-align: center;
+  font-size: 20px;
 }

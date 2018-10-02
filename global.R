@@ -31,7 +31,6 @@ hide = shinyjs::hide
 # Load Utils --------------------------------------------------------------
 sapply(list.files("./utils/", pattern = "*.R$", full.names = TRUE),source)
 
-
 # Config --------------------------------------------------------------
 
 # Load in App Config

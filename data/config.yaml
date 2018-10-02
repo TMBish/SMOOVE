@@ -17,6 +17,7 @@ basic-stats:
       attempts: fga
       makes: fgm
       stat-label: Field Goal Attempts
+      short-label: FGA
   Three Point %:
     type: efficiency
     col: fg3_pct
@@ -28,6 +29,7 @@ basic-stats:
       attempts: fg3a
       makes: fg3m
       stat-label: Three Point Attempts
+      short-label: 3PA
   Three Point Makes:
     type: core
     col: fg3m
@@ -46,6 +48,7 @@ basic-stats:
       attempts: fta
       makes: ftm
       stat-label: Free Throw Attempts
+      short-label: Free Throw Attempts
   Rebounds:
     type: core
     col: reb
@@ -88,4 +91,5 @@ basic-stats:
       default-min: 10
       default-max: 35
       shift-unit: 2
-
+about:
+  text: Hello
