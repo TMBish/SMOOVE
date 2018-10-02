@@ -12,12 +12,16 @@ shinyServer(function(input, output, session) {
     player_stat_table = NULL,
     starter_bench = NULL,
     position = NULL,
-    peer_stats = NULL
+    peer_stats_raw = NULL,
+    peer_stats_out = NULL
   )
   
   # React to player search -----------------------------------------------
   observeEvent(input$player_search, {
     
+    # Hide any containers relevent
+    hide(selector = ".results-only", anim =TRUE)
+
     # Clear revals and update options
     names(revals) %>% map(function(x) {revals[[x]]=NULL})
     updatePrettySwitch(session, input$per_36_enable, value = FALSE)
@@ -52,7 +56,11 @@ shinyServer(function(input, output, session) {
     # Add to revals
     revals$starter_bench = starter_bench
     revals$position = position
-    revals$peer_stats = peer_stats
+    revals$peer_stats_raw = peer_stats
+
+    # Show results
+    show(selector = ".results-only", anim =TRUE)
+
     
   })
 
@@ -61,14 +69,14 @@ shinyServer(function(input, output, session) {
     
     req(revals$career_raw)
     req(revals$player_id)
-    req(revals$peer_stats)
+    req(revals$peer_stats_out)
     
     player_overview_table = build_player_table(
       revals$player_id, 
       stats_master, 
       player_master, 
       revals$career_raw,
-      peer_stats = revals$peer_stats,
+      peer_stats = revals$peer_stats_out,
       per36 = input$per_36_enable
     )
     
@@ -82,15 +90,18 @@ shinyServer(function(input, output, session) {
     # Require these objects
     req(revals$gamelog_raw)
     req(revals$career_raw)
+    req(revals$peer_stats_raw)
 
     # Convert stats to per_mode 
     # Also dedupe the career data for midseason trades
     if (input$per_36_enable) {
-      revals$gamelog_out = gamelog_to_perM(revals$gamelog_raw)
+      revals$gamelog_out = revals$gamelog_raw %>% gamelog_to_perM()
       revals$career_out = revals$career_raw %>% dedupe_player_career_stats() %>% career_to_perM()
+      revals$peer_stats_out = revals$peer_stats_raw %>% allplayerstats_to_perM()
     } else {
       revals$gamelog_out = revals$gamelog_raw
       revals$career_out = revals$career_raw %>% dedupe_player_career_stats()
+      revals$peer_stats_out = revals$peer_stats_raw
     }
     
   })
@@ -160,7 +171,7 @@ shinyServer(function(input, output, session) {
     
     req(revals$gamelog_out)
     req(revals$team_log)
-    req(revals$peer_stats)
+    req(revals$peer_stats_out)
     
     # Stat name & per mode
     core_stat_name = input$core_stat_type
@@ -170,7 +181,7 @@ shinyServer(function(input, output, session) {
     build_season_chart(
       game_log = revals$gamelog_out,
       team_log = revals$team_log,
-      peer_stats = revals$peer_stats,
+      peer_stats = revals$peer_stats_out,
       stat_name = core_stat_name,
       per_mode = per_mode
     )
@@ -180,7 +191,7 @@ shinyServer(function(input, output, session) {
   output$core_career = renderHighchart({
     
     req(revals$career_out)
-    req(revals$peer_stats)
+    req(revals$peer_stats_out)
     
     # Stat name & per mode
     core_stat_name = input$core_stat_type
@@ -189,7 +200,7 @@ shinyServer(function(input, output, session) {
     # Build chart
     build_career_chart(
       career_log = revals$career_out,
-      peer_stats = revals$peer_stats,
+      peer_stats = revals$peer_stats_out,
       stat_name = core_stat_name,
       per_mode = per_mode
     )
@@ -198,16 +209,18 @@ shinyServer(function(input, output, session) {
 
   output$core_distribution = renderHighchart({
     
-    req(revals$peer_stats)
+    req(revals$peer_stats_out)
     req(revals$player_id)
     
     # Stat name & per mode
+    per_mode = per_mode_translation(input$per_36_enable)
     core_stat_name = input$core_stat_type
     
     build_distribution_chart(
       player_id = revals$player_id,
-      peer_stats = revals$peer_stats,
-      stat_name = core_stat_name
+      peer_stats = revals$peer_stats_out,
+      stat_name = core_stat_name,
+      per_mode = per_mode
     )
     
   })
@@ -218,7 +231,7 @@ shinyServer(function(input, output, session) {
     
     req(revals$gamelog_out)
     req(revals$team_log)
-    req(revals$peer_stats)
+    req(revals$peer_stats_out)
     
     # Stat name & per mode
     eff_stat_name = input$efficiency_stat_type
@@ -228,7 +241,7 @@ shinyServer(function(input, output, session) {
     build_season_chart(
       game_log = revals$gamelog_out,
       team_log = revals$team_log,
-      peer_stats = revals$peer_stats,
+      peer_stats = revals$peer_stats_out,
       stat_name = eff_stat_name,
       per_mode = per_mode
     )
@@ -238,7 +251,7 @@ shinyServer(function(input, output, session) {
   output$efficiency_career = renderHighchart({
     
     req(revals$career_out)
-    req(revals$peer_stats)
+    req(revals$peer_stats_out)
     
     # Stat name & per mode
     eff_stat_name = input$efficiency_stat_type
@@ -248,7 +261,7 @@ shinyServer(function(input, output, session) {
     #chart_stat_career(revals$career_out, stat_name = core_stat_name, stat_median = stat_median, per_mode = per_mode)
     build_career_chart(
       career_log = revals$career_out,
-      peer_stats = revals$peer_stats,
+      peer_stats = revals$peer_stats_out,
       stat_name = eff_stat_name,
       per_mode = per_mode
     )
@@ -256,16 +269,19 @@ shinyServer(function(input, output, session) {
   
   output$efficiency_distribution = renderHighchart({
     
-    req(revals$peer_stats)
+    req(revals$peer_stats_out)
     req(revals$player_id)
     
     # Stat name & per mode
     eff_stat_name = input$efficiency_stat_type
+    per_mode = per_mode_translation(input$per_36_enable)
+
     
     build_distribution_chart(
       player_id = revals$player_id,
-      peer_stats = revals$peer_stats,
-      stat_name = eff_stat_name
+      peer_stats = revals$peer_stats_out,
+      stat_name = eff_stat_name,
+      per_mode = per_mode
     )
   })
   

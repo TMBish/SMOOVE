@@ -15,6 +15,7 @@ library(stringr)
 library(assertthat)
 library(furrr)
 library(shinyTypeahead)
+library(shinyjs)
 
 options(stringsAsFactors = FALSE)
 
@@ -24,6 +25,8 @@ app_title = "NBA Pocketbook"
 # Defaults
 filter = dplyr::filter
 lag = dplyr::lag
+show = shinyjs::show
+hide = shinyjs::hide
 
 # Load Utils --------------------------------------------------------------
 sapply(list.files("./utils/", pattern = "*.R$", full.names = TRUE),source)

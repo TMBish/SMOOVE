@@ -25,38 +25,9 @@ allplayerstats_to_perM <- function(cr, M = 36) {
   # Turn career stats dataset into per36 numbers
   cr %>%
     mutate_at(
-      .vars = vars(-(player_id:min), -contains("pct"), -(nba_fantasy_pts:cfparams)), 
+      .vars = vars(-(player_id:min), -contains("pct"), -contains("position"), -(nba_fantasy_pts:cfparams)), 
       .funs = funs(round(. * M / min, 1))
     )
-  
-}
-
-get_peer_median <- function(stats_master, stat_name, starter_bench = "Starting", plyr_position = "F") {
-  
-  # Get field config from app config list in parent environment
-  conf_item = 
-    app_config %>% 
-    pluck("basic-stats", stat_name)
-  
-  # Get real col header name from config
-  col = conf_item %>% pluck("col") 
-  
-  # Peer group
-  game_cutoff = stats_master %>% summarise(cutoff = round(max(gp) * 0.3)) %>% pull(cutoff) # 30% of games
-  if (starter_bench == "Starting") {min_boolean=stats_master$min >= 28} else {min_boolean=stats_master$min < 28}
-  
-  # Return Median
-  stats_master[min_boolean,] %>% 
-    inner_join(player_master %>% select(position, player_id), by = "player_id")
-    # Games Played
-    filter(gp >= game_cutoff) %>%
-    # Position
-    mutate(position_map = position_mapper(position)) %>%
-    filter(position_map == plyr_position) %>%
-    select(value = !!col) %>%
-    pull(value) %>%
-    median() %>%
-    return()
   
 }
 

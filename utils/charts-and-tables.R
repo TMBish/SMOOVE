@@ -53,13 +53,13 @@ build_career_chart = function(career_log, peer_stats, stat_name, per_mode) {
 }
 
 
-build_distribution_chart = function(player_id, peer_stats, stat_name) {
+build_distribution_chart = function(player_id, peer_stats, stat_name, per_mode) {
   
   # Get config
   config = assemble_config(app_config, stat_name) 
   
   # Build Chart
-  chart = make_distribution_chart(player_id, peer_stats, config)
+  chart = make_distribution_chart(player_id, peer_stats, config, per_mode)
   
 }
 
@@ -67,8 +67,11 @@ build_distribution_chart = function(player_id, peer_stats, stat_name) {
 # CHART BUILDERS
 # ++++++++++++++++++++++++
 
-make_distribution_chart = function(plyid, peer_stats, config) {
+make_distribution_chart = function(plyid, peer_stats, config, per_mode) {
   
+  # Stat Label
+  stat_label = config %>% pluck("stat-config", "label")
+
   # Round units
   ru = config %>% pluck("stat-config", "axis", "shift-unit")
   
@@ -82,11 +85,41 @@ make_distribution_chart = function(plyid, peer_stats, config) {
   group_by(stat_bucket) %>%
   arrange(value) %>%
   mutate(y = row_number()) %>%
-  ungroup() %>%
-  mutate(
-    hctooltip = glue("<b> {player_name} </b> <br> {value}")
-  )
-  
+  ungroup() 
+
+  # ++++++++++++
+  # Chart Options
+  # ++++++++++++
+
+  # Number formatting
+  if (str_detect(stat_label, "\\%")) {
+
+    axis_name = stat_label
+    axformatter = JS("function(){ return(Math.round(this.value * 100) + '%')}")
+    
+    # Create tooltip
+    d_f = 
+      d_f %>%
+      mutate(
+        tooltip_value = scales::percent(value),
+        hctooltip = glue("<b> {player_name} </b> <br> {tooltip_value}")
+      )
+
+  } else {
+
+    axis_name = glue("{stat_label} {per_mode}")
+    axformatter = JS("function(){ return(this.value) }")
+
+    # Create tooltip
+    d_f = 
+      d_f %>%
+      mutate(
+        tooltip_value = value,
+        hctooltip = glue("<b> {player_name} </b> <br> {tooltip_value}")
+      )
+
+  }
+
   # ++++++++++++
   # Chart Build
   # ++++++++++++
@@ -110,7 +143,8 @@ make_distribution_chart = function(plyid, peer_stats, config) {
     labels = list(enabled = FALSE)
   ) %>%
   hc_xAxis(
-    title = list(text = config %>% pluck("stat-config", "label"))
+    title = list(text = axis_name),
+    labels = list(formatter = axformatter)
   ) %>%
   hc_title(text = "Peer Distribution") %>%
   hc_tooltip(
@@ -143,7 +177,7 @@ make_season_chart = function(chart_input, config, peer_median, per_mode) {
   
 
   # Set a base tooltip formatter for volume stats
-  tooltip_formatter = JS("function(){return('<b> Game Number: </b>' + this.x + '<br> <b>' + this.series.name + '</b>: ' + (Math.round(this.y * 100) / 100))}")
+  ttformatter = JS("function(){return('<b> Game Number: </b>' + this.x + '<br> <b>' + this.series.name + '</b>: ' + (Math.round(this.y * 100) / 100))}")
   
   # Number formatting
   if (str_detect(stat_label, "\\%")) {
@@ -152,7 +186,7 @@ make_season_chart = function(chart_input, config, peer_median, per_mode) {
     y_axis_name = stat_label
 
     # Need a custom tooltip formatter for this series type
-    tooltip_formatter =   
+    ttformatter =   
       JS(
             "function(){
               var seriesname = this.series.name;
@@ -212,8 +246,9 @@ make_season_chart = function(chart_input, config, peer_median, per_mode) {
     hc_xAxis(title = list(text = "Game Number")) %>%
     hc_add_theme(hc_theme_smoove()) %>%
     hc_tooltip(
-      formatter = tooltip_formatter,
-      crosshairs = TRUE
+      formatter = ttformatter,
+      crosshairs = TRUE,
+      useHTML = TRUE
     )
   
   # Add in volume bar chart if required
@@ -272,14 +307,21 @@ make_career_chart = function(chart_input, config, peer_median, per_mode) {
     config %>% 
     pluck("stat-config", "label")
     
+  # ttformatter = JS("function(){
+  #   console.log(this);
+  #   this.x
+  #   }") 
+
   # Number formatting
   if (str_detect(stat_label, "\\%")) {
     axformatter = JS("function(){ return(Math.round(this.value * 100) + '%')}")
     dlformatter = JS("function(){ return(Math.round(this.y * 100) + '%')}")
+    ttformatter = JS(glue("function(){return('<b> Season: </b>' + this.point.name + '<br> <b> <<<stat_label>>></b>: ' + Math.round(this.y * 1000) / 10 + '%')}", .open = "<<<", .close = ">>>"))
     per_mode = ""
   } else {
     axformatter = JS("function(){ return(this.value) }")
     dlformatter = JS("function(){ return(this.y) }")
+    ttformatter = JS(glue("function(){return('<b> Season: </b>' + this.point.name + '<br> <b> <<<stat_label>>></b>: ' + this.y )}", .open = "<<<", .close = ">>>")) 
   }
   
   # Axis Limits
@@ -328,14 +370,16 @@ make_career_chart = function(chart_input, config, peer_median, per_mode) {
       column = list(
         dataLabels = list(
           enabled = TRUE,
-          #inside = TRUE,
-          #verticalAlign = "top",
-          #color = "#FFF",
           backgroundColor = NULL,
           style = list(textOutline = NULL, fontWeight = "normal", backgroundColor = "#FFF"),
           formatter = dlformatter
         )
       )
+    ) %>%
+    hc_tooltip(
+      useHTML = TRUE,
+      formatter = ttformatter,
+      crosshairs = TRUE
     )
     
     

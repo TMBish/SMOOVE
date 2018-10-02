@@ -14,8 +14,7 @@ hc_theme_smoove = function() {
         )
         # shadow = TRUE
       ),
-      colors = list("#1d89ff", "#ED074F", "#FE5F55", "#C1E1F1", "#5FEF9B"),
-       # "#1D428A", 
+      colors = list("#1d89ff", "#1D428A", "#ED074F", "#FE5F55", "#C1E1F1", "#5FEF9B"),
       title = list(
         style = header_style,
         align = "left"
@@ -24,7 +23,6 @@ hc_theme_smoove = function() {
         lineWidth = 1, lineColor = "#011627",
         tickWidth = 0,
         title = list(style = header_style)
-        #labels = list(autoRotation = 0, overflow = "justify")
       ),
       yAxis = list(
         lineWidth = 1, lineColor = "#011627",
@@ -49,9 +47,7 @@ hc_theme_smoove = function() {
         line = list(marker = list(symbol = "circle", lineWidth = 3, radius = 2)),
         scatter = list(marker = list(symbol = "square", radius = 2)),
         spline = list(marker = list(symbol = "circle", lineWidth = 2, radius = 0)),
-        # column = list(dataLabels = list(backgroundColor = "#FFF"))
         column = list(dataLabels = list(backgroundColor = "#FFF", style = list(fontSize = 8)))
-
       ),
       legend = list(
         align = "right",

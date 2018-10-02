@@ -20,20 +20,23 @@ div(class = "pad-15",
     options = list(title = "SELECT A STAT.")
   ),
   
-  fluidRow(
-    box(width = 12,
-      highchartOutput("core_season", height = 300),
-    # ),
-    fluidRow(
-        column(width = 6,
-           highchartOutput("core_career", height = 300)
+  hidden(
+    fluidRow(class = "results-only",
+      box(width = 12,
 
-        ),
-        column(width = 6,
-          highchartOutput("core_distribution", height = 300)
+        highchartOutput("core_season", height = 300),
+
+        fluidRow(
+            column(width = 6,
+               highchartOutput("core_career", height = 300)
+
+            ),
+            column(width = 6,
+              highchartOutput("core_distribution", height = 300)
+            )
+          
+          )
         )
-      
-      )
     )
   ),
 
@@ -57,22 +60,23 @@ div(class = "pad-15",
       options = list(title = "SELECT A STAT.")
     ),
     
-    fluidRow(
+  hidden(
+    fluidRow(class = "results-only",
       box(width = 12,
         highchartOutput("efficiency_season", height = 300),
-      # ),
-      fluidRow(
-          column(width = 6,
-             highchartOutput("efficiency_career", height = 300)
+        fluidRow(
+            column(width = 6,
+               highchartOutput("efficiency_career", height = 300)
 
-          ),
-          column(width = 6,
-            highchartOutput("efficiency_distribution", height = 300)
+            ),
+            column(width = 6,
+              highchartOutput("efficiency_distribution", height = 300)
+            )
+          
           )
-        
         )
       )
-    )
+  )
 
 
   

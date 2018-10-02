@@ -4,9 +4,10 @@ navbarPage("SMOOVE",
     theme=shinythemes::shinytheme("sandstone"),
 
     tabPanel("PLAYER.",
+
+    useShinyjs(),
     
     #source("./ui/nav-bar.R", local=TRUE)$value,
-  
 
     # Shiny Dashboard CSS
     tags$head(
