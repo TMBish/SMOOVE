@@ -82,12 +82,9 @@ h4 {
   border-bottom-width: 3px;
 }
 
-
-
 /* +++++++++++++ */
 /* PLAYER SEARCH */
 /* +++++++++++++ */
-
 #player_name {
   color: #232b2b;
   font-size: 12px;
@@ -108,7 +105,6 @@ h4 {
 /* +++++++++++++ */
 /* PLAYER RESULTS */
 /* +++++++++++++ */
-
 .numberCircle {
   border-radius: 50%;
   width: 22px;
@@ -132,13 +128,23 @@ th {
   text-align: center;
 }
 
-
 /* +++++++++++++ */
 /* PLAYER RESULTS */
 /* +++++++++++++ */
-
 .player-name-pane-title {
   font-weight: bold;
   text-align: center;
   font-size: 20px;
+}
+
+/* +++++++++++++ */
+/* ABOUT */
+/* +++++++++++++ */
+
+#about-smoove {
+  width: 100%;
+}
+
+.smooveinfo b {
+  color: #1d89ff;
 }

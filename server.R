@@ -6,6 +6,7 @@ shinyServer(function(input, output, session) {
     player_id = NULL,
     player_name = NULL,
     season = NULL,
+    player_data = NULL,
     #player_stats_raw = NULL,
     #player_stats_out = NULL,
     team_log = NULL,
@@ -34,7 +35,8 @@ shinyServer(function(input, output, session) {
     player_record = player_master %>% filter(player == input$player_name) 
     id_ = player_record %>% pull(player_id)
     revals$player_id = id_
-    
+    revals$player_data = player_record
+
     # Update career stats
     career_raw = get_player_career_stats(id_)
     revals$career_raw = career_raw
@@ -163,19 +165,19 @@ shinyServer(function(input, output, session) {
   })
   
   # Peer group
-  output$peergrp = renderText({
-    req(revals$position)
-    req(revals$starter_bench)
+  # output$peergrp = renderText({
+  #   req(revals$position)
+  #   req(revals$starter_bench)
     
-    pos_ = case_when(
-      revals$position == "F" ~ "Forwards",
-      revals$position == "G" ~ "Guards",
-      TRUE ~ "Centers"
-    )
+  #   pos_ = case_when(
+  #     revals$position == "F" ~ "Forwards",
+  #     revals$position == "G" ~ "Guards",
+  #     TRUE ~ "Centers"
+  #   )
     
-    glue("Peer Group: {revals$starter_bench} {pos_}") %>% return()
+  #   glue("Peer Group: {revals$starter_bench} {pos_}") %>% return()
   
-  })
+  # })
   
   # Player Stat Overview Table
   output$player_stat_table = renderDT({
@@ -350,6 +352,36 @@ shinyServer(function(input, output, session) {
     req(revals$player_name)
     revals$player_name
   })
+
+  output$player_info = renderUI({
+    
+    req(revals$player_data)
+    req(revals$position)
+    req(revals$starter_bench)
+    
+    pos_ = case_when(
+      revals$position == "F" ~ "Forwards",
+      revals$position == "G" ~ "Guards",
+      TRUE ~ "Centers"
+    )
+    
+    txt =
+      revals$player_data %>%
+      mutate(
+        info = glue("
+          <b> Height: </b> {height} <br>
+          <b> Weight: </b> {weight} lbs <br>
+          <b> Age: </b> {age} <br>
+          <b> College: </b> {school} <br>
+        ")
+      ) %>%
+      pull(info)
+
+    glue("<b> Peer Group: </b> {revals$starter_bench} {pos_} <br> {txt}") %>%
+    HTML()
+
+  })
+
 
   
 })

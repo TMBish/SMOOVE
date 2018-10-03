@@ -78,7 +78,10 @@ div(class = "sidebar key-info-box pad-15",
     div(class="results-only",
 
       div(class="numberCircle", "i"),
-      div(class = "centered", textOutput("peergrp")),
+      br(),
+      #div(class = "centered", textOutput("peergrp")),
+      htmlOutput("player_info"),
+
 
       br(),
       
