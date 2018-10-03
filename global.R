@@ -1,21 +1,14 @@
-library(tidyverse)
-library(shiny)
-library(shinyWidgets)
-library(DT)
-library(highcharter)
-library(shinydashboard)
-library(yaml)
-library(zoo)
-library(highcharter)
-library(httr)
-library(jsonlite)
-library(purrr)
-library(glue)
-library(stringr)
-library(assertthat)
-library(furrr)
-library(shinyTypeahead)
-library(shinyjs)
+library(pacman)
+
+# Packages --------------------------------------------------------------
+
+p_load(
+    tidyverse, purrr, glue, stringr, furrr,
+    httr, jsonlite, zoo, assertthat, DT, highcharter, yaml,
+    shiny, shinyWidgets, shinydashboard, shinyTypeahead, shinyjs
+)
+
+# Options --------------------------------------------------------------
 
 options(stringsAsFactors = FALSE)
 
