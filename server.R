@@ -45,7 +45,7 @@ shinyServer(function(input, output, session) {
     revals$gamelog_raw = glraw
 
     # Update team games log
-    revals$team_log = build_team_log(career_raw)
+    revals$team_log = build_team_log(career_raw, season)
     
     # Peer group
     starter_bench = ifelse(glraw %>% pull(min) %>% mean() > 26, "Starting", "Bench")

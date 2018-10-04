@@ -12,7 +12,12 @@ response_to_df <- function(response, index = 1) {
   }
   
 
-    
+  # Empty?
+  if (results$rowSet[[1]] %>% is_empty()) {
+    return(tibble(ERROR = "NO RECORDS"))
+  }
+  
+  
   # Get the data
   df = results %>%
     pluck("rowSet") %>% 

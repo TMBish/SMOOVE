@@ -28,9 +28,13 @@ get_player_gamelog = function(player_id = NULL, season = NULL, playoffs = FALSE)
   response = submit_request(endpoint, params)
   
   # Convert first element of response to DF
-  df = response_to_df(response, 1) %>% mutate(season = season)
+  df = response_to_df(response, 1)
   
-  return(df)
+  if ("ERROR" %in% names(df)) {
+    return(df)
+  } else {
+    df %>% mutate(season = season) %>% return()
+  }
   
 }
 
@@ -138,13 +142,3 @@ get_player_career_stats = function(plyid, per_mode = "PerGame") {
   
 }
 
-dedupe_player_career_stats = function(career_log) {
-
-  # Clean up mid season trades
-  career_log %>%
-    group_by(season_id) %>% mutate(teams = n()) %>% ungroup() %>%
-    # Record for total for 2 team seasons
-    filter(teams == 1 | (teams > 1 & team_abbreviation == "TOT")) %>%
-    select(-teams)
-
-}

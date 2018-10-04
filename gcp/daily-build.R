@@ -4,11 +4,18 @@ p_load(
   tidyverse, purrr, glue, stringr, furrr,
   httr, jsonlite, zoo, assertthat, DT, highcharter, yaml,
   shiny, shinyWidgets, shinydashboard, shinyjs, shinythemes,
-  here, googleCloudStorageR
+  here, googleCloudStorageR, R.utils
 )
 
 
 # OPTIONS AND FUNCTIONS -----------------------------------------------------------------
+
+# Defaults
+filter = dplyr::filter
+lag = dplyr::lag
+show = shinyjs::show
+hide = shinyjs::hide
+
 
 # Season
 season = "2017-18"
@@ -24,20 +31,46 @@ gcs_auth()
 
 # ONE OFF -----------------------------------------------------------------
 
-
-
+# Teams
+team_list = get_team_list()
+team_list_file_name = "team-lookup.rds"
+write_rds(team_list, paste0("gcp/",team_list_file_name))
+gcs_upload(
+  file = paste0("gcp/", team_list_file_name),
+  bucket = "smoove",
+  name = paste0("metadata/",team_list_file_name)
+)
 
 # DAILY -----------------------------------------------------------------
 
 
+# Team Schedule
+current_teams = team_list %>% filter(max_year == 2018)
+for (team_id in current_teams$team_id) {
+  
+  team_log = get_team_games(team_id)
+  
+  team_log_name = glue("{team_id}.rds")
+  write_rds(team_log, paste0("gcp/",team_log_name))
+  gcs_upload(
+    file = paste0("gcp/", team_log_name),
+    bucket = "smoove",
+    name = paste0("metadata/schedule/",season,"-",team_id,".rds")
+  )
+  file.remove(paste0("gcp/",team_log_name))
+} 
+
+
+
 # Player master
 player_info = build_player_data()
+#player_info = read_rds("data/player_master.rds")
 player_info_file_name = glue("{season}-player-info.rds")
 write_rds(player_info, paste0("gcp/",player_info_file_name))
 gcs_upload(
   file = paste0("gcp/", player_info_file_name),
   bucket = "smoove",
-  name = paste0("metadata/",player_info_file_name)
+  name = paste0("metadata/playerinfo/",season, ".rds")
 )
 
 # League dash player stats
@@ -89,23 +122,32 @@ counter = 0
 for (player_id in player_info$player_id) {
   
   counter = counter + 1
-  
-  if (counter %% 30 == 0) {
-    print("SLEEP")
-    Sys.sleep(30)
-  }
-  
   print(counter)
   
   
-  gamelog = tryCatch({
-    get_player_gamelog(player_id, season = season)
-  }, error = function(e){
-    # A rookie
-    NA
-  })
+  gamelog = NULL
   
-  if (!is.data.frame(gamelog)) {next}
+  while (!is.data.frame(gamelog)) {
+    
+    
+    gamelog = withTimeout(
+      expr = {
+          get_player_gamelog(player_id, season = season)
+      },
+      timeout = 15,
+      onTimeout = "warning"
+    )
+    
+    if (!is.data.frame(gamelog)) {
+      # Retry
+      print("SLEEP")
+    } else if ("ERROR" %in% names(gamelog)) {
+      break
+    }
+    
+  }
+  
+  if ("ERROR" %in% names(gamelog)) {next}
   
   gamelog_file_name = glue("{player_id}.rds")
   write_rds(gamelog, paste0("gcp/",gamelog_file_name))

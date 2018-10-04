@@ -31,6 +31,19 @@ allplayerstats_to_perM <- function(cr, M = 36) {
   
 }
 
+dedupe_player_career_stats = function(career_log) {
+
+  # Clean up mid season trades
+  career_log %>%
+    group_by(season_id) %>% mutate(teams = n()) %>% ungroup() %>%
+    # Record for total for 2 team seasons
+    filter(teams == 1 | (teams > 1 & team_abbreviation == "TOT")) %>%
+    select(-teams)
+
+}
+
+
+
 get_peer_stats <- function(stats_master, player_master, starter_bench = "Starting", plyr_position = "F") {
   
   # Peer group criteria
