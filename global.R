@@ -9,7 +9,7 @@ p_load_gh("ThomasSiegmund/shinyTypeahead")
 p_load(
     tidyverse, purrr, glue, stringr, furrr,
     httr, jsonlite, zoo, assertthat, DT, highcharter, yaml,
-    shiny, shinyWidgets, shinydashboard, shinyjs
+    shiny, shinyWidgets, shinydashboard, shinyjs, shinythemes
 )
 
 # Options --------------------------------------------------------------
