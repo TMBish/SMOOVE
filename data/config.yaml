@@ -76,14 +76,14 @@ basic-stats:
     axis:
       default-min: 0
       default-max: 2.5
-      shift-unit: 0.3
+      shift-unit: 0.2
   Turn Overs:
     type: core
     col: tov
     axis:
       default-min: 0
       default-max: 5
-      shift-unit: 0.5
+      shift-unit: 0.4
   Minutes: 
     type: core
     col: min

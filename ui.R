@@ -12,7 +12,14 @@ navbarPage("SMOOVE",
       includeCSS(file.path('www', path = "style.css"))
     ),
     
+    hidden(
+        
+        div(id = "loading-container", tags$img(src = "loader.gif", id = "loading-spinner"))
+    
+    ),
+    
     fluidRow(class = "main-page",
+             
              
             column(4,
                   source("./ui/side-bar.R", local=TRUE)$value

@@ -1,11 +1,15 @@
+
+if (!("pacman" %in% installed.packages())) install.packages('pacman')
 library(pacman)
 
 # Packages --------------------------------------------------------------
 
+p_load_gh("ThomasSiegmund/shinyTypeahead")
+
 p_load(
     tidyverse, purrr, glue, stringr, furrr,
     httr, jsonlite, zoo, assertthat, DT, highcharter, yaml,
-    shiny, shinyWidgets, shinydashboard, shinyTypeahead, shinyjs
+    shiny, shinyWidgets, shinydashboard, shinyjs
 )
 
 # Options --------------------------------------------------------------

@@ -7,8 +7,6 @@ shinyServer(function(input, output, session) {
     player_name = NULL,
     season = NULL,
     player_data = NULL,
-    #player_stats_raw = NULL,
-    #player_stats_out = NULL,
     team_log = NULL,
     gamelog_raw = NULL,
     gamelog_out = NULL,
@@ -26,6 +24,7 @@ shinyServer(function(input, output, session) {
     
     # Hide any containers relevent
     hide(selector = ".results-only", anim =TRUE)
+    show("loading-container", anim =TRUE)
 
     # Clear revals and update options
     names(revals) %>% map(function(x) {revals[[x]]=NULL})
@@ -158,230 +157,28 @@ shinyServer(function(input, output, session) {
       revals$career_out = revals$career_raw %>% dedupe_player_career_stats()
       revals$peer_stats_out = revals$peer_stats_raw
     }
-
-    # Show results
-    show(selector = ".results-only", anim =TRUE)
     
   })
   
-  # Peer group
-  # output$peergrp = renderText({
-  #   req(revals$position)
-  #   req(revals$starter_bench)
-    
-  #   pos_ = case_when(
-  #     revals$position == "F" ~ "Forwards",
-  #     revals$position == "G" ~ "Guards",
-  #     TRUE ~ "Centers"
-  #   )
-    
-  #   glue("Peer Group: {revals$starter_bench} {pos_}") %>% return()
+
+  # Charts ----------------------------------------------------------
+  source("./server/server-charts.R", local=TRUE)
   
-  # })
+  # Tables and Info ----------------------------------------------------------
+  source("./server/server-tables-and-info.R", local = TRUE)
   
-  # Player Stat Overview Table
-  output$player_stat_table = renderDT({
+  # Loader----------------------------------------------------------
+  observe({
     
+    req(revals$efficiency_charts)
+    req(revals$core_charts)
     req(revals$player_stat_table)
     
-    # Label for the per mode
-    per_mode_label = ifelse(input$per_36_enable, "PER 36 MINUTES", "PER GAME")
-    
-    # Insert statistic into rownames
-    dtab = revals$player_stat_table %>% as.data.frame()
-    rownames(dtab) = dtab$statistic
-    dtab = dtab %>% select(-statistic)
-    
-    # Create custom column names for the per mode
-    column_container = htmltools::withTags(table(
-      class = 'display dt-center',
-      thead(
-        tr(
-          th(rowspan = 2, ""),
-          th(colspan = 4, per_mode_label)
-        ),
-        tr(
-          lapply(c("Career Avg", "2017-18", "Peer Median", "Peer %tile"), th)
-        )
-      )
-    ))
-    
-    datatable(
-      dtab
-      , container = column_container
-      , selection = "none"
-      , class = 'compact hover row-border'
-      , options = list(
-        dom = 't',
-        pageLength = 20,
-        columnDefs = list(
-          list(className = 'dt-center', targets = c(1, 2, 3, 4)),
-          list(className = "dt-right", targets = 0)
-        )
-      )
-    )
-    
+    show(selector = ".results-only", anim =TRUE)
+    hide("loading-container", anim =TRUE)
     
   })
   
-  # Core Stats
-  output$core_season = renderHighchart({
-    
-    req(revals$gamelog_out)
-    req(revals$team_log)
-    req(revals$peer_stats_out)
-    
-    # Stat name & per mode
-    core_stat_name = input$core_stat_type
-    per_mode = per_mode_translation(input$per_36_enable)
-    
-    # Build chart
-    build_season_chart(
-      game_log = revals$gamelog_out,
-      team_log = revals$team_log,
-      peer_stats = revals$peer_stats_out,
-      stat_name = core_stat_name,
-      per_mode = per_mode
-    )
-    
-  })
-
-  output$core_career = renderHighchart({
-    
-    req(revals$career_out)
-    req(revals$peer_stats_out)
-    
-    # Stat name & per mode
-    core_stat_name = input$core_stat_type
-    per_mode = per_mode_translation(input$per_36_enable)
-    
-    # Build chart
-    build_career_chart(
-      career_log = revals$career_out,
-      peer_stats = revals$peer_stats_out,
-      stat_name = core_stat_name,
-      per_mode = per_mode
-    )
-    
-  })
-
-  output$core_distribution = renderHighchart({
-    
-    req(revals$peer_stats_out)
-    req(revals$player_id)
-    
-    # Stat name & per mode
-    per_mode = per_mode_translation(input$per_36_enable)
-    core_stat_name = input$core_stat_type
-    
-    build_distribution_chart(
-      player_id = revals$player_id,
-      peer_stats = revals$peer_stats_out,
-      stat_name = core_stat_name,
-      per_mode = per_mode
-    )
-    
-  })
-  
-  
-  # Efficiency
-  output$efficiency_season = renderHighchart({
-    
-    req(revals$gamelog_out)
-    req(revals$team_log)
-    req(revals$peer_stats_out)
-    
-    # Stat name & per mode
-    eff_stat_name = input$efficiency_stat_type
-    per_mode = per_mode_translation(input$per_36_enable)
-    
-    # Build chart
-    build_season_chart(
-      game_log = revals$gamelog_out,
-      team_log = revals$team_log,
-      peer_stats = revals$peer_stats_out,
-      stat_name = eff_stat_name,
-      per_mode = per_mode
-    )
-    
-  })
-  
-  output$efficiency_career = renderHighchart({
-    
-    req(revals$career_out)
-    req(revals$peer_stats_out)
-    
-    # Stat name & per mode
-    eff_stat_name = input$efficiency_stat_type
-    per_mode = per_mode_translation(input$per_36_enable)
-    
-    # Build chart
-    #chart_stat_career(revals$career_out, stat_name = core_stat_name, stat_median = stat_median, per_mode = per_mode)
-    build_career_chart(
-      career_log = revals$career_out,
-      peer_stats = revals$peer_stats_out,
-      stat_name = eff_stat_name,
-      per_mode = per_mode
-    )
-  })
-  
-  output$efficiency_distribution = renderHighchart({
-    
-    req(revals$peer_stats_out)
-    req(revals$player_id)
-    
-    # Stat name & per mode
-    eff_stat_name = input$efficiency_stat_type
-    per_mode = per_mode_translation(input$per_36_enable)
-
-    
-    build_distribution_chart(
-      player_id = revals$player_id,
-      peer_stats = revals$peer_stats_out,
-      stat_name = eff_stat_name,
-      per_mode = per_mode
-    )
-  })
-
-
-  output$core_player_name = renderText({
-    req(revals$player_name)
-    revals$player_name
-  })
-  output$eff_player_name = renderText({
-    req(revals$player_name)
-    revals$player_name
-  })
-
-  output$player_info = renderUI({
-    
-    req(revals$player_data)
-    req(revals$position)
-    req(revals$starter_bench)
-    
-    pos_ = case_when(
-      revals$position == "F" ~ "Forwards",
-      revals$position == "G" ~ "Guards",
-      TRUE ~ "Centers"
-    )
-    
-    txt =
-      revals$player_data %>%
-      mutate(
-        info = glue("
-          <b> Height: </b> {height} <br>
-          <b> Weight: </b> {weight} lbs <br>
-          <b> Age: </b> {age} <br>
-          <b> College: </b> {school} <br>
-        ")
-      ) %>%
-      pull(info)
-
-    glue("<b> Peer Group: </b> {revals$starter_bench} {pos_} <br> {txt}") %>%
-    HTML()
-
-  })
-
 
   
 })
