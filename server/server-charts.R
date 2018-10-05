@@ -131,7 +131,7 @@ output$core_distribution = renderHighchart({
 # Season
 output$efficiency_season = renderHighchart({
   
-  req(revals$core_charts)
+  req(revals$efficiency_charts)
   revals$efficiency_charts$season_chart
   
 })
@@ -139,7 +139,7 @@ output$efficiency_season = renderHighchart({
 # Career
 output$efficiency_career = renderHighchart({
   
-  req(revals$core_charts)
+  req(revals$efficiency_charts)
   revals$efficiency_charts$career_chart
   
 })
@@ -147,7 +147,7 @@ output$efficiency_career = renderHighchart({
 # Efficiency
 output$efficiency_distribution = renderHighchart({
   
-  req(revals$core_charts)
+  req(revals$efficiency_charts)
   revals$efficiency_charts$distribution_chart
   
 })

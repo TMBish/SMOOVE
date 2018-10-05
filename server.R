@@ -56,7 +56,7 @@ shinyServer(function(input, output, session) {
         mutate(position_map = position_mapper(position)) %>%
         pull(position_map)
         
-    peer_stats = get_peer_stats(stats_master, player_master, player_id = id_, starter_bench, position)
+    peer_stats = get_peer_stats(stats_master, player_master, plyr_id = id_, starter_bench, position)
     
     # Add to revals
     revals$starter_bench = starter_bench

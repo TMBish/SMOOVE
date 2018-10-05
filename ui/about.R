@@ -7,8 +7,22 @@ div(class="key-info-box pad-15 smooveinfo",
         div(class = "header-box",
             h4("SMOOVE.")
         ),
+        
+        # Meta tags
+        HTML(
+        '
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:site" content="@tmbish.me">
+        <meta name="twitter:creator" content="@bigbishdog">
+        <meta name="twitter:title" content="SMOOVE">
+        <meta name="twitter:description" content="Lite, visual, shiny-based basketball reference">
+        <meta name="twitter:image" content="https://nbcprobasketballtalk.files.wordpress.com/2017/10/501699182-e1508972748484.jpg">
+        '
+        ),
 
+        # Content
         HTML("
+        <br>
         <p> 
         I named this project after the one and only J-Smoove. The resilience and stoicism of my NBA fandom was forged in the furnace
         of Josh Smith bricks and defensive lapses. As one of my most hated players of all time I do think, ironically, in today's era - and with much <b> much </b> more discipline - he

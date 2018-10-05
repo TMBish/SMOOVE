@@ -81,9 +81,12 @@ make_distribution_chart = function(plyid, peer_stats, config, per_mode) {
     square_size = 10
   } else if (players < 40) {
     square_size = 6
-  } else {
+  } else if (players < 70) {
     square_size = 4
     ru = ru / 2
+  } else {
+    square_size = 4
+    ru = ru / 4
   }
   
   d_f = 

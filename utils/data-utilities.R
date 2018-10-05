@@ -57,7 +57,7 @@ get_current_season <- function() {
 }
 
 
-get_peer_stats <- function(stats_master, player_master, player_id, starter_bench = "Starting", plyr_position = "F") {
+get_peer_stats <- function(stats_master, player_master, plyr_id, starter_bench = "Starting", plyr_position = "F") {
   
   # Peer group criteria
   game_cutoff = 
@@ -67,15 +67,15 @@ get_peer_stats <- function(stats_master, player_master, player_id, starter_bench
   
   # Starter bench
   if (starter_bench == "Starting") {
-    min_boolean= (stats_master$min >= 26) | (stats_master$player_id == player_id)
+    min_boolean= (stats_master$min >= 26) | (stats_master$player_id == plyr_id)
   } else if (starter_bench == "Bench") {
-    min_boolean= (stats_master$min < 26) | (stats_master$player_id == player_id)
+    min_boolean= (stats_master$min < 26) | (stats_master$player_id == plyr_id)
   } else {
     min_boolean = rep(TRUE, nrow(stats_master))
   }
   
   stats_master[min_boolean,] %>%
-    filter((gp >= game_cutoff) | (stats_master[min_boolean,]$player_id == player_id)) %>%
+    filter((gp >= game_cutoff) | (player_id == plyr_id)) %>%
     # Position
     inner_join(player_master %>% select(player_id, position), by = "player_id") %>%
     mutate(position_map = position_mapper(position)) %>%

@@ -9,17 +9,16 @@ div(class = "sidebar key-info-box pad-15",
   ),
   
   fluidRow(class= "center-children",
-    column(8,
+    column(8, class = "centered",
       shinyTypeahead::typeaheadInput(
         "player_name", label = "",
         items = 15,
         value = "LeBron James",
         choices = player_master$player
-      ) 
-      
+      )
     ),
     
-    column(4,  class = "drop-27",
+    column(4, class = "centered",
       
       actionBttn(
         "player_search", 

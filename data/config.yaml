@@ -36,7 +36,7 @@ basic-stats:
     axis:
       default-min: 0
       default-max: 3
-      shift-unit: 0.5
+      shift-unit: 0.3
   Free Throw %:
     type: efficiency
     col: ft_pct
