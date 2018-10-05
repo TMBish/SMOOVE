@@ -13,8 +13,10 @@ output$player_stat_table = renderDT({
   # Insert statistic into rownames
   dtab = revals$player_stat_table %>% as.data.frame()
   rownames(dtab) = dtab$statistic
-  dtab = dtab %>% select(-statistic)
-  
+  dtab = 
+    dtab %>% 
+    select(-statistic)
+    
   # Create custom column names for the per mode
   column_container = htmltools::withTags(table(
     class = 'display dt-center',
@@ -34,6 +36,7 @@ output$player_stat_table = renderDT({
     , container = column_container
     , selection = "none"
     , class = 'compact hover row-border'
+    , escape = FALSE
     , options = list(
       dom = 't',
       pageLength = 20,
@@ -42,6 +45,11 @@ output$player_stat_table = renderDT({
         list(className = "dt-right", targets = 0)
       )
     )
+  ) %>%
+  formatStyle(
+    'peer_percentile',
+    backgroundColor = styleInterval(c(15, 40, 60, 85), c('rgba(29,137,255,0)', "rgba(29,137,255,0.15)", 'rgba(29,137,255,0.4)', 'rgba(29,137,255,0.6)', 'rgba(29,137,255,0.85)')),
+    color = styleInterval(c(60), c("#000", "#FFF"))
   )
   
   
