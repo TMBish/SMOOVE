@@ -42,8 +42,8 @@ season = get_current_season()
 #   b ) Point at my personal GCP Simple Storage snapshot (good for speed and remote instances)
 # Obviously b) won't work if you're not me and don't have my GCP credentials that's why the default is a)
 
-app_endpoint = "nba-stats-api"
-#app_endpoint = "tmbish-gcp"
+#app_endpoint = "nba-stats-api"
+app_endpoint = "tmbish-gcp"
 
 if (app_endpoint == "nba-stats-api") {
 
@@ -71,6 +71,13 @@ if (app_endpoint == "nba-stats-api") {
     stats_master = build_player_stats(season)
     
 }
+
+# TOtal minutes or minutes per game?
+stats_master =
+  stats_master %>%
+  mutate(
+    min = ifelse(min > 50, min / gp, min)
+  )
 
 
 
