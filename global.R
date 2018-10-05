@@ -67,8 +67,10 @@ if (app_endpoint == "nba-stats-api") {
     gcs_auth()
     
     # Hit gcp for player and stats master
-    player_master = build_player_info(season)
-    stats_master = build_player_stats(season)
+    #player_master = build_player_info(season)
+    #stats_master = build_player_stats(season)
+    player_master = read_rds("data/player_master.rds")
+    stats_master = read_rds("data/stats_master.rds")
     
 }
 
@@ -76,7 +78,7 @@ if (app_endpoint == "nba-stats-api") {
 stats_master =
   stats_master %>%
   mutate(
-    min = ifelse(min > 50, min / gp, min)
+    min = ifelse(min > 50, round(min / gp, 2), min)
   )
 
 

@@ -248,7 +248,7 @@ make_season_chart = function(chart_input, config, peer_median, per_mode) {
           label = list(
             text = "peer median",
              style = list(color = "#ED074F", fontWeight = "bold", fontSize = "12px"),
-             align = "right"
+             align = "left"
           )
         #, zIndex = 10
         )
@@ -374,7 +374,11 @@ make_career_chart = function(chart_input, config, peer_median, per_mode) {
           value = peer_median,
           color = "#ED074F",
           width = 1,
-          label = list(text = "peer median", style = list(color = "#ED074F", fontWeight = "bold", fontSize = "12px"))
+          label = list(
+            text = "peer median", 
+            style = list(color = "#ED074F", fontWeight = "bold", fontSize = "12px"),
+            align = "left"
+          )
           #, zIndex = 10
         )
       )
