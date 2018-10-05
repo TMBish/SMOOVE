@@ -72,5 +72,12 @@ if (app_endpoint == "nba-stats-api") {
     
 }
 
+# TOtal minutes or minutes per game?
+stats_master =
+  stats_master %>%
+  mutate(
+    min = ifelse(min > 50, min / gp, min)
+  )
+
 
 
