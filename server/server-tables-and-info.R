@@ -10,12 +10,18 @@ output$player_stat_table = renderDT({
   # Label for the per mode
   per_mode_label = ifelse(input$per_36_enable, "PER 36 MINUTES", "PER GAME")
   
-  # Insert statistic into rownames
-  dtab = revals$player_stat_table %>% as.data.frame()
-  rownames(dtab) = dtab$statistic
+  # Insert statistic into rownames and reverse peer percentile
   dtab = 
-    dtab %>% 
-    select(-statistic)
+    revals$player_stat_table %>% 
+    mutate(
+      peer_percentile = case_when(
+        statistic == "Turnovers" ~ (100 - peer_percentile),
+        TRUE ~ peer_percentile
+      )
+    ) 
+  dtab = dtab %>% as.data.frame()
+  rownames(dtab) = dtab$statistic
+  dtab = dtab %>% select(-statistic)
     
   # Create custom column names for the per mode
   column_container = htmltools::withTags(table(
