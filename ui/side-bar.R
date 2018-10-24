@@ -6,16 +6,33 @@ div(class = "sidebar key-info-box pad-15",
   # ++++++++++++++++++++++++
   div(class = "header-box",
     h4("PLAYER.")
+  ), br(),
+  
+  # Season
+  fluidRow(
+    
+    column(6,
+      pickerInput(
+       inputId = "season",
+       label = "SEASON:", 
+       choices = c("2018-19", "2017-18"),
+       options = list(title = "select season.")
+      )
+    )
   ),
   
-  fluidRow(class= "center-children",
+  hidden(
+    fluidRow(id = "player-search-row", class= "center-children",
     column(8, class = "centered",
-      shinyTypeahead::typeaheadInput(
-        "player_name", label = "",
-        items = 15,
-        value = "LeBron James",
-        choices = player_master$player
-      )
+      # shinyTypeahead::typeaheadInput(
+      #   "player_name", label = "",
+      #   items = 15,
+      #   value = "LeBron James",
+      #   choices = c(1,2,3,4, "LeBron James") 
+      #   #player_master$player
+      # )
+      
+      uiOutput("player_search", class = "width-100")
     ),
     
     column(4, class = "centered",
@@ -31,6 +48,7 @@ div(class = "sidebar key-info-box pad-15",
         no_outline = TRUE)
     )
     
+  )
   ), br(),
 
   # ++++++++++++++++++++++++
@@ -42,7 +60,7 @@ div(class = "sidebar key-info-box pad-15",
   ), br(),
   
   fluidRow(
-    column(3, 
+    column(4,
       #class = "drop-27",
       prettySwitch(
        inputId = "per_36_enable",
@@ -51,16 +69,6 @@ div(class = "sidebar key-info-box pad-15",
        fill = TRUE
       )
     )
-    # column(4, 
-    #   selectInput(
-    #    inputId = "season_select",
-    #    label = "", 
-    #    choices = "2017-18"
-    #    #status = "success",
-    #    #fill = TRUE
-    #   )
-    # )
-
   ), br(),
 
   
@@ -80,8 +88,7 @@ div(class = "sidebar key-info-box pad-15",
       br(),
       #div(class = "centered", textOutput("peergrp")),
       htmlOutput("player_info"),
-
-
+      
       br(),
       
       div(class="numberCircle", "ii"),

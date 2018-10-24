@@ -29,6 +29,27 @@ h4 {
   color: white;
 }
 
+nav {
+  padding:10px;
+  background-color: #3E3F3A !important;
+  align-items: center;
+}
+
+.navbar-default .navbar-nav>.active>a, .navbar-default .navbar-nav>.active>a:focus, .navbar-default .navbar-nav>.active>a:hover {
+  background-color: #3E3F3A !important;
+  color: #77b8ff;
+  font-weight: bold;
+}
+
+.navbar-default .navbar-brand, .navbar-default .navbar-nav>li>a {
+  color: #FFF;
+}
+
+.navbar-default .navbar-nav>li>a:hover {
+  color: #FFF;
+  text-decoration: underline;
+}
+
 /* App Body*/
 .main-page {
   padding: 1%;
@@ -73,6 +94,7 @@ h4 {
 .sidebar {
   width: 100%;
   min-height: 600px;
+  min-width: 300px;
 }
 
 .key-info-box {
@@ -86,6 +108,16 @@ h4 {
 /* +++++++++++++ */
 /* PLAYER SEARCH */
 /* +++++++++++++ */
+
+/*#player_search {
+  height: 27px;
+}*/
+
+#player-search-row button {
+  margin-top: 4px;
+  height: 34px;
+}
+
 #player_name {
   color: #232b2b;
   font-size: 12px;
@@ -103,6 +135,11 @@ h4 {
 .drop-32 {
   margin-top: 32px;
 }
+
+.width-100 {
+  width: 100%;
+}
+
 /* +++++++++++++ */
 /* PLAYER RESULTS */
 /* +++++++++++++ */
@@ -160,8 +197,9 @@ th {
 #loading-container {
   position: fixed;
   z-index: 999;
-  height: 2em;
-  width: 2em;
+  height: 400px;
+  width: 400px;
+  text-align: center;
   overflow: show;
   margin: auto;
   top: 0;

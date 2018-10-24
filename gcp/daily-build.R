@@ -18,10 +18,11 @@ hide = shinyjs::hide
 
 
 # Season
-season = "2017-18"
+season = "2018-19"
 
 # Functions
 sapply(list.files("./utils/", pattern = "*.R$", full.names = TRUE),source)
+sapply(list.files("./utils/api/", pattern = "*.R$", full.names = TRUE),source)
 
 # GCP AUTH
 Sys.setenv("GCS_AUTH_FILE" = paste0(here(), "/gcp/tmbish-8998f7559de5.json"))
@@ -33,13 +34,13 @@ gcs_auth()
 
 # Teams
 team_list = get_team_list()
-team_list_file_name = "team-lookup.rds"
-write_rds(team_list, paste0("gcp/",team_list_file_name))
-gcs_upload(
-  file = paste0("gcp/", team_list_file_name),
-  bucket = "smoove",
-  name = paste0("metadata/",team_list_file_name)
-)
+# team_list_file_name = "team-lookup.rds"
+# write_rds(team_list, paste0("gcp/",team_list_file_name))
+# gcs_upload(
+#   file = paste0("gcp/", team_list_file_name),
+#   bucket = "smoove",
+#   name = paste0("metadata/",team_list_file_name)
+# )
 
 # DAILY -----------------------------------------------------------------
 
@@ -48,7 +49,7 @@ gcs_upload(
 current_teams = team_list %>% filter(max_year == 2018)
 for (team_id in current_teams$team_id) {
   
-  team_log = get_team_games(team_id)
+  team_log = get_team_games(team_id, season = season)
   
   team_log_name = glue("{team_id}.rds")
   write_rds(team_log, paste0("gcp/",team_log_name))
@@ -63,7 +64,7 @@ for (team_id in current_teams$team_id) {
 
 
 # Player master
-player_info = build_player_data()
+player_info = build_player_data(season=season)
 #player_info = read_rds("data/player_master.rds")
 player_info_file_name = glue("{season}-player-info.rds")
 write_rds(player_info, paste0("gcp/",player_info_file_name))
@@ -74,7 +75,7 @@ gcs_upload(
 )
 
 # League dash player stats
-leaguedashplayerstats = get_all_player_stats(season = season)
+leaguedashplayerstats = get_all_player_stats(season = season, per_mode = "PerGame")
 leaguedashplayerstats_file_name = glue("{season}-leaguedashplayerstats.rds")
 write_rds(leaguedashplayerstats, paste0("gcp/",leaguedashplayerstats_file_name))
 gcs_upload(
@@ -88,73 +89,82 @@ counter = 0
 for (player_id in player_info$player_id) {
   
   counter = counter + 1
-  
-  if (counter %% 100 == 0) {
-    print("SLEEP")
-    Sys.sleep(30)
-  }
-  
   print(counter)
   
+  career_stats = NULL
   
-  career_stats = tryCatch({
-    get_player_career_stats(player_id)
-  }, error = function(e){
-    # A rookie
-    NA
-  })
+  while (!is.data.frame(career_stats)) {
+    
+    career_stats = get_player_career_stats(player_id)
+    
+    if ("ERROR" %in% names(career_stats)) {
+      
+      if (career_stats$ERROR[1] == "NO RECORDS") {
+        break
+      } else {
+        print("SLEEPING")
+        Sys.sleep(30)
+      }
+      
+      # Else was a timeout so continue
+      
+    }
+    
+  }
   
-  if (!is.data.frame(career_stats)) {next}
+  if ("ERROR" %in% names(career_stats)) {
+    next
+  }
   
   career_stats_file_name = glue("{player_id}.rds")
+  
   write_rds(career_stats, paste0("gcp/",career_stats_file_name))
+  
   gcs_upload(
     file = paste0("gcp/", career_stats_file_name),
     bucket = "smoove",
     name = paste0("stats/playercareerstats/",player_id,".rds")
   )
+  
   file.remove(paste0("gcp/",career_stats_file_name))
+  
 }
 
 
 # Player gamelog
 counter = 0
 for (player_id in player_info$player_id) {
-  
-  counter = counter + 1
-  print(counter)
-  
-  
+
   gamelog = NULL
   
   while (!is.data.frame(gamelog)) {
     
+    gamelog = get_player_gamelog(player_id, season = season)
     
-    gamelog = withTimeout(
-      expr = {
-          get_player_gamelog(player_id, season = season)
-      },
-      timeout = 15,
-      onTimeout = "warning"
-    )
-    
-    if (!is.data.frame(gamelog)) {
-      # Retry
-      print("SLEEP")
-    } else if ("ERROR" %in% names(gamelog)) {
-      break
+    if ("ERROR" %in% names(gamelog)) {
+      
+      if (gamelog$ERROR[1] == "NO RECORDS") {
+        break
+      } else {
+        print("SLEEPING")
+        Sys.sleep(120)
+      }
+      # Else was a timeout so continue
+      
     }
     
   }
   
-  if ("ERROR" %in% names(gamelog)) {next}
+  if ("ERROR" %in% names(gamelog)) {
+    next
+  }
   
   gamelog_file_name = glue("{player_id}.rds")
   write_rds(gamelog, paste0("gcp/",gamelog_file_name))
   gcs_upload(
     file = paste0("gcp/", gamelog_file_name),
     bucket = "smoove",
-    name = paste0("stats/playergamelog/",player_id,".rds")
+    name = paste0("stats/playergamelog/",season, "-", player_id,".rds")
   )
   file.remove(paste0("gcp/",gamelog_file_name))
 }

@@ -204,7 +204,7 @@ make_season_chart = function(chart_input, config, peer_median, per_mode) {
       JS(
             "function(){
               var seriesname = this.series.name;
-              if (seriesname.includes('Attempts')) {
+              if (seriesname.includes('A')) {
                 var yval = (Math.round(this.y * 100) / 100);
               } else {
                 var yval = Math.round(this.y * 100)  + '%';

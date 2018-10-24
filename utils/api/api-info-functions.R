@@ -2,7 +2,12 @@
 # Wrappers
 # ++++++++++++++++++++++++
 
-build_player_data <- function() {
+build_player_data <- function(season = NULL) {
+  
+  # Season
+  if (is.null(season)) {
+    season = get_current_season()
+  }
   
   # Set up parallel processing
   plan(multiprocess)
@@ -13,7 +18,7 @@ build_player_data <- function() {
   # Get team rosters from Team IDs
   rosters = teams %>%
     pull(team_id) %>%
-    future_map(get_team_roster) %>%
+    future_map(~get_team_roster(., season = season)) %>%
     bind_rows()
     
     
@@ -64,21 +69,26 @@ get_team_list <- function() {
     
 }
 
-get_team_roster <- function(team_id) {
+get_team_roster <- function(team_id, season = NULL) {
+  
+  # Season
+  if (is.null(season)) {
+    season = get_current_season()
+  }
   
   # Params
   endpoint = 'commonteamroster'
   
   # Assemble Params
   params = list(
-    'Season' = "2017-18",
+    'Season' = season,
     'TeamID' = team_id
   )
   
   # Execute
   submit_request(endpoint, params) %>%
     response_to_df(1) %>%
-    mutate_at(vars(num), as.character) %>%
+    mutate_at(vars(num, exp), as.character) %>%
     select(-leagueid, -birth_date) %>%
     return()
   

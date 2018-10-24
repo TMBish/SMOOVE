@@ -33,7 +33,7 @@ efficiency_fields = app_config$`basic-stats` %>% keep(~ .$type == "efficiency") 
 list.files("./utils/",pattern = "*.R$", full.names = TRUE) %>% map(source)
 
 # Season
-season = get_current_season()
+#season = get_current_season()
 
 # Enpoint? --------------------------------------------------------------
 
@@ -51,10 +51,9 @@ if (app_endpoint == "nba-stats-api") {
     list.files("./utils/api/",pattern = "*.R$", full.names = TRUE) %>% map(source)
     
     # Hit api for player and season stats master
-    # player_master = build_player_data()
-    # stats_master = get_all_player_stats()
-    player_master = read_rds("data/player_master.rds")
-    stats_master = read_rds("data/stats_master.rds")
+    # player_master = build_player_data(season)
+    # stats_master = get_all_player_stats(season = season)
+
     
 } else {
     
@@ -67,19 +66,11 @@ if (app_endpoint == "nba-stats-api") {
     gcs_auth()
     
     # Hit gcp for player and stats master
-    #player_master = build_player_info(season)
-    #stats_master = build_player_stats(season)
-    player_master = read_rds("data/player_master.rds")
-    stats_master = read_rds("data/stats_master.rds")
+    # player_master = build_player_info(season)
+    # stats_master = build_player_stats(season)
     
 }
 
-# TOtal minutes or minutes per game?
-stats_master =
-  stats_master %>%
-  mutate(
-    min = ifelse(min > 50, round(min / gp, 2), min)
-  )
 
 
 

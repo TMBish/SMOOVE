@@ -1,4 +1,39 @@
 # ++++++++++++++++++++++++
+# DYNAMIC INPUTS
+# ++++++++++++++++++++++++
+
+output$player_search = renderUI({
+  
+  req(revals$player_master)
+  
+  player_master = revals$player_master
+  
+  # Default
+  if (!(is.null(revals$player_name))) {
+    inputvalue = revals$player_name
+  } else {
+    inputvalue = player_master %>% sample_n(1) %>% pull(player)
+  }
+  
+  shinyTypeahead::typeaheadInput(
+      "player_name", label = "",
+      items = 15,
+      value = inputvalue,
+      choices = player_master$player
+  )
+  
+})
+
+# Unhide selection
+observe({
+  req(revals$player_master)
+  
+  show("player-search-row", anim =TRUE)
+  
+})
+
+
+# ++++++++++++++++++++++++
 # TABLES
 # ++++++++++++++++++++++++
 

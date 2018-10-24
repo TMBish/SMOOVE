@@ -1,8 +1,6 @@
 # shinyUI(
 navbarPage("SMOOVE",
            
-    theme=shinythemes::shinytheme("sandstone"),
-
     tabPanel("PLAYER.", useShinyjs(),
     
     # Shiny Dashboard CSS

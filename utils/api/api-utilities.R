@@ -1,5 +1,10 @@
 response_to_df <- function(response, index = 1) {
   
+  # Is it a NULL response
+  if (is.null(response)) {
+    return(tibble(ERROR = "TIMEOUT"))
+  }
+  
   # Manipulate Response Object
   results = response %>%
     pluck("content") %>%
@@ -58,14 +63,17 @@ submit_request <- function(endpoint, params) {
   api_url = glue(url_build) %>% URLencode()
   
   response = 
-    httr::GET(
+    tryCatch({
+      httr::GET(
       api_url,
       add_headers(
         'Host' = 'stats.nba.com',
         'Proxy-Connection' = 'keep-alive',
         'User-Agent'= user_agent
-      )
+      ),
+      timeout(15)
     )
+   }, error = function(e) {NULL})
   
   return(response)
   
