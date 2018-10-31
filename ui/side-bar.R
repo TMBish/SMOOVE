@@ -87,7 +87,15 @@ div(class = "sidebar key-info-box pad-15",
       div(class="numberCircle", "i"),
       br(),
       #div(class = "centered", textOutput("peergrp")),
-      htmlOutput("player_info"),
+      fluidRow(
+        column(8,
+          htmlOutput("player_info")
+        ),
+        column(4,
+          htmlOutput("player_photo")
+        )
+      ),
+      
       
       br(),
       

@@ -137,3 +137,11 @@ output$player_info = renderUI({
   HTML()
 
 })
+
+output$player_photo = renderUI({
+  
+  req(revals$player_id)
+  
+  shiny::img(src = paste0("https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/",revals$player_id,".png"))
+  
+})

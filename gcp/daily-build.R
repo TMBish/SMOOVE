@@ -25,7 +25,7 @@ sapply(list.files("./utils/", pattern = "*.R$", full.names = TRUE),source)
 sapply(list.files("./utils/api/", pattern = "*.R$", full.names = TRUE),source)
 
 # GCP AUTH
-Sys.setenv("GCS_AUTH_FILE" = paste0(here(), "/gcp/tmbish-8998f7559de5.json"))
+Sys.setenv("GCS_AUTH_FILE" = "C:/Data/SECRETS/tmbish-8998f7559de5.json")
 options(googleAuthR.scopes.selected = "https://www.googleapis.com/auth/devstorage.full_control")
 gcs_auth()
 
@@ -84,89 +84,137 @@ gcs_upload(
   name = paste0("stats/leaguedashplayerstats/",season,".rds")
 )
 
-# Career Stats
-counter = 0
-for (player_id in player_info$player_id) {
-  
-  counter = counter + 1
-  print(counter)
-  
-  career_stats = NULL
-  
-  while (!is.data.frame(career_stats)) {
+
+# Multisession map
+library(furrr)
+
+plan(multisession)
+
+
+res = future_map(
+  .x = player_info$player_id, 
+  .f = function(x) {
     
-    career_stats = get_player_career_stats(player_id)
+    career_stats = get_player_career_stats(x)
     
     if ("ERROR" %in% names(career_stats)) {
-      
-      if (career_stats$ERROR[1] == "NO RECORDS") {
-        break
-      } else {
-        print("SLEEPING")
-        Sys.sleep(30)
-      }
-      
-      # Else was a timeout so continue
-      
+      return()
+    } else {
+      career_stats_file_name = glue("{x}.rds")
+      write_rds(career_stats, paste0("gcp/",career_stats_file_name))
+      gcs_upload(
+        file = paste0("gcp/", career_stats_file_name),
+        bucket = "smoove",
+        name = paste0("stats/playercareerstats/",x,".rds")
+      )
+      file.remove(paste0("gcp/",career_stats_file_name))
     }
+  })
+
+
+# Career Stats
+# counter = 0
+# for (player_id in player_info$player_id) {
+#   
+#   counter = counter + 1
+#   
+#   career_stats = NULL
+#   
+#   while (!is.data.frame(career_stats)) {
+#     
+#     career_stats = get_player_career_stats(player_id)
+#     
+#     if ("ERROR" %in% names(career_stats)) {
+#       
+#       if (career_stats$ERROR[1] == "NO RECORDS") {
+#         break
+#       } else {
+#         print("SLEEPING")
+#         Sys.sleep(30)
+#       }
+#       
+#       # Else was a timeout so continue
+#       
+#     }
+#     
+#   }
+#   
+#   if ("ERROR" %in% names(career_stats)) {
+#     next
+#   }
+#   
+#   career_stats_file_name = glue("{player_id}.rds")
+#   
+#   write_rds(career_stats, paste0("gcp/",career_stats_file_name))
+#   
+#   gcs_upload(
+#     file = paste0("gcp/", career_stats_file_name),
+#     bucket = "smoove",
+#     name = paste0("stats/playercareerstats/",player_id,".rds")
+#   )
+#   
+#   file.remove(paste0("gcp/",career_stats_file_name))
+#   
+# }
+
+# Multi session map
+res = future_map(
+  .x = player_info$player_id, 
+  .f = function(x) {
     
-  }
-  
-  if ("ERROR" %in% names(career_stats)) {
-    next
-  }
-  
-  career_stats_file_name = glue("{player_id}.rds")
-  
-  write_rds(career_stats, paste0("gcp/",career_stats_file_name))
-  
-  gcs_upload(
-    file = paste0("gcp/", career_stats_file_name),
-    bucket = "smoove",
-    name = paste0("stats/playercareerstats/",player_id,".rds")
-  )
-  
-  file.remove(paste0("gcp/",career_stats_file_name))
-  
-}
+    gamelog = get_player_gamelog(x, season = season)
+    
+    if ("ERROR" %in% names(gamelog)) {
+      return()
+    } else {
+      gamelog_file_name = glue("{x}.rds")
+      write_rds(gamelog, paste0("gcp/",gamelog_file_name))
+      gcs_upload(
+        file = paste0("gcp/", gamelog_file_name),
+        bucket = "smoove",
+        name = paste0("stats/playergamelog/",season, "-", x,".rds")
+      )
+      file.remove(paste0("gcp/",gamelog_file_name))
+    }
+  })
 
 
 # Player gamelog
-counter = 0
-for (player_id in player_info$player_id) {
-
-  gamelog = NULL
-  
-  while (!is.data.frame(gamelog)) {
-    
-    gamelog = get_player_gamelog(player_id, season = season)
-    
-    if ("ERROR" %in% names(gamelog)) {
-      
-      if (gamelog$ERROR[1] == "NO RECORDS") {
-        break
-      } else {
-        print("SLEEPING")
-        Sys.sleep(120)
-      }
-      # Else was a timeout so continue
-      
-    }
-    
-  }
-  
-  if ("ERROR" %in% names(gamelog)) {
-    next
-  }
-  
-  gamelog_file_name = glue("{player_id}.rds")
-  write_rds(gamelog, paste0("gcp/",gamelog_file_name))
-  gcs_upload(
-    file = paste0("gcp/", gamelog_file_name),
-    bucket = "smoove",
-    name = paste0("stats/playergamelog/",season, "-", player_id,".rds")
-  )
-  file.remove(paste0("gcp/",gamelog_file_name))
-}
+# counter = 0
+# for (player_id in player_info$player_id) {
+# 
+#   gamelog = NULL
+#   
+#   while (!is.data.frame(gamelog)) {
+#     
+#     gamelog = get_player_gamelog(player_id, season = season)
+#     
+#     if ("ERROR" %in% names(gamelog)) {
+#       
+#       if (gamelog$ERROR[1] == "NO RECORDS") {
+#         break
+#       } else {
+#         print("SLEEPING")
+#         Sys.sleep(120)
+#       }
+#       # Else was a timeout so continue
+#       
+#     }
+#     
+#   }
+#   
+#   if ("ERROR" %in% names(gamelog)) {
+#     next
+#   }
+#   
+#   gamelog_file_name = glue("{player_id}.rds")
+#   write_rds(gamelog, paste0("gcp/",gamelog_file_name))
+#   gcs_upload(
+#     file = paste0("gcp/", gamelog_file_name),
+#     bucket = "smoove",
+#     name = paste0("stats/playergamelog/",season, "-", player_id,".rds")
+#   )
+#   file.remove(paste0("gcp/",gamelog_file_name))
+# }
 
 
