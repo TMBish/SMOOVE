@@ -41,6 +41,7 @@ observe({
 output$player_stat_table = renderDT({
   
   req(revals$player_stat_table)
+  req(revals$season)
   
   # Label for the per mode
   per_mode_label = ifelse(input$per_36_enable, "PER 36 MINUTES", "PER GAME")
@@ -67,13 +68,14 @@ output$player_stat_table = renderDT({
         th(colspan = 4, per_mode_label)
       ),
       tr(
-        lapply(c("Career Avg", "2017-18", "Peer Median", "Peer %tile"), th)
+        lapply(c(revals$season, "Peers", "Peer %tile", "Career Avg"), th)
       )
     )
   ))
   
   datatable(
     dtab
+    , elementId = "dt-player-overview-table"
     , container = column_container
     , selection = "none"
     , class = 'compact hover row-border'
@@ -82,15 +84,28 @@ output$player_stat_table = renderDT({
       dom = 't',
       pageLength = 20,
       columnDefs = list(
-        list(className = 'dt-center', targets = c(1, 2, 3, 4)),
-        list(className = "dt-right", targets = 0)
+        list(className = 'dt-right', targets = c(1, 2, 4)),
+        list(className = 'dt-center', targets = 3),
+        list(className = "dt-left", targets = 0)
       )
     )
   ) %>%
   formatStyle(
+    0,
+    target = 'row',
+    # fontWeight = styleEqual(
+    #   c("Points", "FG %", "3PT %", "FT %", "Rebounds", "Assists", "Turnovers")
+    #   , rep("bold", 7)
+    # ),
+    borderBottom=styleEqual(
+      c("Points", "FG %", "3PT %", "FT %", "Rebounds", "Turnovers"),
+      rep("1.7px solid #3e3f3a", 6)
+    )
+  ) %>% 
+  formatStyle(
     'peer_percentile',
-    backgroundColor = styleInterval(c(15, 40, 60, 85), c('rgba(29,137,255,0)', "rgba(29,137,255,0.15)", 'rgba(29,137,255,0.4)', 'rgba(29,137,255,0.6)', 'rgba(29,137,255,0.85)')),
-    color = styleInterval(c(60), c("#000", "#FFF"))
+    backgroundColor = styleInterval(c(15, 40, 60, 85), c('rgba(29,137,255,0)', "rgba(29,137,255,0.15)", 'rgba(29,137,255,0.4)', 'rgba(29,137,255,0.6)', 'rgba(29,137,255,0.85)'))
+    ,color = styleEqual(NA, "white")
   )
   
   

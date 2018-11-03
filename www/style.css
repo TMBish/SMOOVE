@@ -55,6 +55,14 @@ nav {
   text-decoration: underline;
 }
 
+/* This is needed to alter css border targetting for DataTables
+see: https://github.com/rstudio/DT/issues/348
+*/
+#player_stat_table table.dataTable {
+  border-collapse: collapse;
+}
+
+
 /* App Body*/
 .main-page {
   padding: 1%;
@@ -108,6 +116,12 @@ nav {
   border: 0.5px solid #3e3f3a;
   border-right-width: 3px;
   border-bottom-width: 3px;
+}
+
+.equal-height {
+  display: flex;
+  display: -webkit-flex;
+  flex-wrap: wrap;
 }
 
 /* +++++++++++++ */
@@ -165,6 +179,10 @@ nav {
   font-family: 'Roboto Mono', serif;
   font-size: 11px;
   text-align: center;
+}
+
+#player_info {
+  font-size: 12px;
 }
 
 th {

@@ -112,6 +112,7 @@ shinyServer(function(input, output, session) {
       peer_stats = get_peer_stats(revals$stats_master, revals$player_master, plyr_id = id_, starter_bench, position)
       
       # Add to revals
+      revals$season = input$season
       revals$starter_bench = starter_bench
       revals$position = position
       revals$peer_stats_raw = peer_stats

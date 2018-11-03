@@ -566,10 +566,24 @@ build_player_table = function(
   
   # Stats of interest
   statcats = c(
-    "min", "pts", "reb", "ast", 
-    "fg_pct", "fg3_pct","ft_pct", 
-     "stl", "blk", "tov",
-    "fga","fg3a", "fta", "oreb", "dreb"
+    "min", 
+    "pts",
+    "fgm",
+    "fga",
+    "fg_pct",
+    "fg3m",
+    "fg3a",
+    "fg3_pct",
+    "ftm",
+    "fta",
+    "ft_pct",
+    "oreb", 
+    "dreb",
+    "reb",
+    "ast",  
+    "stl",
+    "blk",
+    "tov"
   )
   
   this_season = 
@@ -595,6 +609,7 @@ build_player_table = function(
   # Get poisition per 36 average
   peer_median = 
     peer_stats %>%
+    select(one_of(statcats)) %>%
     summarise_all(median) %>%
     mutate_at(vars(contains("pct")), scales::percent) %>%
     mutate(min = ifelse(per36, 36, min)) %>%
@@ -614,13 +629,22 @@ build_player_table = function(
       }
     )
     
+  percentile_omits = c("min", "fga", "fgm", "fg3a", "fg3m", "fta", "ftm")
+
   # +++++++++++++
   # Assemble
   # +++++++++++++
   player_table %>%
     inner_join(peer_median, by = "statistic") %>%
     inner_join(peer_percentile, by = "statistic") %>%
-    select(statistic, career_avg, this_season, peer_median, peer_percentile) %>%
+    select(statistic, this_season, peer_median, peer_percentile, career_avg) %>%
+    # Null out certain percentiles
+    mutate(
+        peer_percentile = case_when(
+            statistic %in% percentile_omits ~ NA_real_,
+            TRUE ~ peer_percentile
+        )
+    ) %>%
     mutate(statistic = data_stat_translation(statistic)) %>%
     return()
   

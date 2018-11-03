@@ -26,12 +26,19 @@ lag = dplyr::lag
 
 # Load Utils --------------------------------------------------------------
 sapply(list.files("./utils/", pattern = "*.R$", full.names = TRUE),source)
+list.files("./utils/gcp/",pattern = "*.R$", full.names = TRUE) %>% map(source)
+
+list.files("./utils/api/",pattern = "*.R$", full.names = TRUE) %>% map(source)
 
 # Load in App Config
 app_config = yaml.load_file("./data/config.yaml")
 
 
 # All the api functions --------------------------------------------------------------
+
+
+    player_master = build_player_info('2018-19')
+    stats_master = build_player_stats('2018-19')
 
 # Get player
 plyrid = get_player("Blake", "Griffin")
